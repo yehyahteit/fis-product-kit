@@ -68,6 +68,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .af-pill button{background:none;border:none;cursor:pointer;color:#1a56db;font-size:.85rem;line-height:1;padding:0;margin-left:1px;}
 .clear-all-btn{margin-left:auto;font-size:.68rem;font-weight:700;color:#94a3b8;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;}
 .clear-all-btn:hover{color:#ef4444;background:#fee2e2;}
+/* ── CONDITION MULTI-SELECT DROPDOWN ── */
+.cond-dropdown-wrap{position:relative;}
+.cond-trigger{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.75rem;font-family:inherit;background:#f8fafc;color:#64748b;cursor:pointer;white-space:nowrap;transition:all .15s;user-select:none;}
+.cond-trigger:hover{border-color:#1a56db;background:#eff6ff;}
+.cond-trigger.has-value{border-color:#1a56db;background:#eff6ff;color:#1a56db;font-weight:700;}
+.cond-trigger svg{flex-shrink:0;transition:transform .15s;}
+.cond-trigger.open svg.chevron{transform:rotate(180deg);}
+.cond-badge{background:#1a56db;color:#fff;border-radius:20px;padding:1px 6px;font-size:.6rem;font-weight:800;}
+.cond-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;width:380px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.12);z-index:900;overflow:hidden;}
+.cond-panel.open{display:block;}
+.cond-search-wrap{padding:10px 12px;border-bottom:1px solid #e2e8f0;}
+.cond-search{width:100%;padding:6px 10px;border:1.5px solid #e2e8f0;border-radius:7px;font-size:.74rem;font-family:inherit;outline:none;}
+.cond-search:focus{border-color:#1a56db;}
+.cond-list{max-height:260px;overflow-y:auto;}
+.cond-item{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;font-size:.74rem;color:#334155;transition:background .1s;}
+.cond-item:hover{background:#f8fafc;}
+.cond-item input[type=checkbox]{width:14px;height:14px;accent-color:#1a56db;flex-shrink:0;cursor:pointer;}
+.cond-item.checked{background:#eff6ff;color:#1a56db;font-weight:600;}
+.cond-footer{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-top:1px solid #e2e8f0;background:#f8fafc;}
+.cond-count-lbl{font-size:.68rem;color:#94a3b8;font-weight:600;}
+.cond-clear-btn{font-size:.68rem;font-weight:700;color:#ef4444;background:none;border:none;cursor:pointer;padding:2px 8px;border-radius:6px;}
+.cond-clear-btn:hover{background:#fee2e2;}
 .chip:hover{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;}
 .chip.active{background:#1a56db;border-color:#1a56db;color:#fff;font-weight:700;}
 .chip .chip-ct{font-size:.62rem;font-weight:700;opacity:.7;margin-left:2px;}
@@ -194,6 +216,25 @@ tbody td.svc-col{max-width:260px;}
     </select>
     <input type="text" class="fb-input fb-input-wide" id="feeSearch" placeholder="🔍  Search fee name or description…" oninput="applyFilters();updateActivePills()">
     <input type="text" class="fb-input fb-input-mid" id="beneficiarySearch" placeholder="🏦  Beneficiary…" oninput="applyFilters();updateActivePills()">
+    <!-- Condition multi-select -->
+    <div class="cond-dropdown-wrap" id="condWrap">
+      <div class="cond-trigger" id="condTrigger" onclick="toggleCondPanel()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        <span id="condTriggerLabel">Condition</span>
+        <span class="cond-badge" id="condBadge" style="display:none;"></span>
+        <svg class="chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>
+      </div>
+      <div class="cond-panel" id="condPanel">
+        <div class="cond-search-wrap">
+          <input class="cond-search" id="condSearch" placeholder="Search conditions…" oninput="filterCondList()" autocomplete="off">
+        </div>
+        <div class="cond-list" id="condList"></div>
+        <div class="cond-footer">
+          <span class="cond-count-lbl" id="condCountLbl">0 selected</span>
+          <button class="cond-clear-btn" onclick="clearConditions()">Clear all</button>
+        </div>
+      </div>
+    </div>
     <button class="reset-btn" id="resetBtn" onclick="resetFilters()" style="margin-left:auto;">✕ Reset All</button>
   </div>
   <!-- Row 2: Type chips -->
@@ -269,6 +310,7 @@ var SERVICES = [];         // [{app_type_id, app_type_en, product_category}]
 var SVC_MAP = {};          // id → service row
 var activeFilter = 'all';
 var activeService = '';
+var selectedConditions = new Set(); // multi-select conditions
 
 // ── Init ────────────────────────────────────────────────────────────────
 async function initPage(){
@@ -303,6 +345,10 @@ async function initPage(){
 
     // Nav badge
     document.getElementById('mmBadge').textContent = fees.length + ' Fee Lines';
+
+    // Build condition list
+    var condVals = [...new Set(fees.map(function(f){ return (f.condition||'').trim(); }).filter(Boolean))].sort();
+    buildCondList(condVals);
 
     document.getElementById('loadingOverlay').style.display = 'none';
 
@@ -351,6 +397,7 @@ function resetFilters(){
   document.getElementById('beneficiarySearch').value = '';
   document.getElementById('resetBtn').classList.remove('visible');
   document.querySelectorAll('.chip').forEach(function(c,i){ c.classList.toggle('active', i===0); });
+  clearConditions();
   document.getElementById('promptState').style.display = '';
   document.getElementById('feesContent').style.display = 'none';
   updateChipCounts(ALL_FEES);
@@ -368,10 +415,10 @@ function applyFilters(){
     ? ALL_FEES.filter(function(f){ return f.app_type_id === activeService; })
     : ALL_FEES;
 
-  // Channel filter (uses condition field: 'Channel' or 'Counter')
+  // Channel filter: 'Channel' or 'Counter' from ch_type field
   if(chFilter){
     base = base.filter(function(f){
-      return (f.condition||'').toLowerCase() === chFilter;
+      return (f.ch_type||'').toLowerCase() === chFilter;
     });
   }
 
@@ -406,7 +453,14 @@ function applyFilters(){
     });
   }
 
-  var hasActivity = activeService || activeFilter !== 'all' || query || benQuery || chFilter;
+  // Condition multi-select
+  if(selectedConditions.size > 0){
+    filtered = filtered.filter(function(f){
+      return selectedConditions.has((f.condition||'').trim());
+    });
+  }
+
+  var hasActivity = activeService || activeFilter !== 'all' || query || benQuery || chFilter || selectedConditions.size > 0;
 
   if(hasActivity){
     document.getElementById('promptState').style.display = 'none';
@@ -441,6 +495,12 @@ function updateActivePills(){
   }
   if(bq){
     pills.push({label:'Beneficiary: "'+bq+'"', clear:function(){ document.getElementById('beneficiarySearch').value=''; applyFilters(); updateActivePills(); }});
+  }
+  if(selectedConditions.size > 0){
+    var condLabel = selectedConditions.size === 1
+      ? 'Condition: "' + [...selectedConditions][0].substring(0,25) + (([...selectedConditions][0].length>25)?'…':'') + '"'
+      : selectedConditions.size + ' Conditions selected';
+    pills.push({label: condLabel, clear: function(){ clearConditions(); updateActivePills(); }});
   }
 
   var wrap = document.getElementById('activePillsWrap');
@@ -563,6 +623,97 @@ function buildTableRows(rows, singleService){
 
 function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CONDITION MULTI-SELECT ────────────────────────────────────────────────
+var ALL_COND_VALS = [];
+
+function buildCondList(vals) {
+  ALL_COND_VALS = vals;
+  renderCondList(vals);
+}
+
+function renderCondList(vals) {
+  var list = document.getElementById('condList');
+  list.innerHTML = '';
+  vals.forEach(function(v) {
+    var item = document.createElement('div');
+    item.className = 'cond-item' + (selectedConditions.has(v) ? ' checked' : '');
+    item.dataset.val = v;
+    item.innerHTML = '<input type="checkbox" ' + (selectedConditions.has(v) ? 'checked' : '') + '/><span>' + escHtml(v) + '</span>';
+    item.querySelector('input').addEventListener('change', function() {
+      if(this.checked) { selectedConditions.add(v); item.classList.add('checked'); }
+      else { selectedConditions.delete(v); item.classList.remove('checked'); }
+      updateCondTrigger();
+      applyFilters();
+      updateActivePills();
+    });
+    list.appendChild(item);
+  });
+}
+
+function filterCondList() {
+  var q = document.getElementById('condSearch').value.trim().toLowerCase();
+  var filtered = q ? ALL_COND_VALS.filter(function(v){ return v.toLowerCase().includes(q); }) : ALL_COND_VALS;
+  renderCondList(filtered);
+}
+
+function toggleCondPanel() {
+  var panel = document.getElementById('condPanel');
+  var trigger = document.getElementById('condTrigger');
+  var isOpen = panel.classList.toggle('open');
+  trigger.classList.toggle('open', isOpen);
+  if(isOpen) {
+    document.getElementById('condSearch').focus();
+    // Close on outside click
+    setTimeout(function(){
+      document.addEventListener('click', closeCondOnOutside);
+    }, 0);
+  } else {
+    document.removeEventListener('click', closeCondOnOutside);
+  }
+}
+
+function closeCondOnOutside(e) {
+  var wrap = document.getElementById('condWrap');
+  if(!wrap.contains(e.target)) {
+    document.getElementById('condPanel').classList.remove('open');
+    document.getElementById('condTrigger').classList.remove('open');
+    document.removeEventListener('click', closeCondOnOutside);
+  }
+}
+
+function clearConditions() {
+  selectedConditions.clear();
+  document.getElementById('condSearch').value = '';
+  renderCondList(ALL_COND_VALS);
+  updateCondTrigger();
+  applyFilters();
+  updateActivePills();
+}
+
+function updateCondTrigger() {
+  var n = selectedConditions.size;
+  var trigger = document.getElementById('condTrigger');
+  var badge = document.getElementById('condBadge');
+  var lbl = document.getElementById('condTriggerLabel');
+  var countLbl = document.getElementById('condCountLbl');
+  if(n === 0) {
+    lbl.textContent = 'Condition';
+    badge.style.display = 'none';
+    trigger.classList.remove('has-value');
+  } else if(n === 1) {
+    var val = [...selectedConditions][0];
+    lbl.textContent = val.length > 22 ? val.substring(0,22)+'…' : val;
+    badge.style.display = 'none';
+    trigger.classList.add('has-value');
+  } else {
+    lbl.textContent = 'Condition';
+    badge.textContent = n;
+    badge.style.display = '';
+    trigger.classList.add('has-value');
+  }
+  countLbl.textContent = n + ' selected';
 }
 
 initPage();

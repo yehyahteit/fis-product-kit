@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if(localStorage.getItem('fis_kit_auth')!=='1'){
+    document.documentElement.style.visibility='hidden';
+    window.location.replace('login.html');
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fees Documentation — FIS Product Kit</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f1f5f9;min-height:100vh;display:flex;flex-direction:column;}
+
+/* ── MEGA MENU ── */
+.mega-menu{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:46px;background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%);position:sticky;top:0;z-index:900;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.mm-brand{display:flex;align-items:center;gap:10px;min-width:0;}
+.mm-logo{background:#fff;color:#1e3a8a;font-size:.68rem;font-weight:900;padding:3px 8px;border-radius:5px;letter-spacing:.06em;flex-shrink:0;}
+.mm-badge{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:2px 9px;font-size:.63rem;font-weight:700;color:rgba(255,255,255,.8);margin-left:6px;white-space:nowrap;flex-shrink:0;}
+.mm-actions{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.mm-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:rgba(255,255,255,.85);font-size:.7rem;font-weight:600;padding:5px 11px;cursor:pointer;text-decoration:none;transition:background .15s;white-space:nowrap;font-family:inherit;}
+.mm-btn:hover{background:rgba(255,255,255,.22);color:#fff;}
+.mm-btn.mm-exit{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.35);color:#fca5a5;}
+.mm-btn.mm-exit:hover{background:rgba(239,68,68,.32);}
+.mm-btn.mm-back{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);}
+.mm-btn.mm-back:hover{background:rgba(255,255,255,.18);}
+.mm-sep{width:1px;height:20px;background:rgba(255,255,255,.18);margin:0 3px;}
+.mm-breadcrumb{display:flex;align-items:center;gap:6px;font-size:.72rem;color:rgba(255,255,255,.55);}
+.mm-breadcrumb a{color:rgba(255,255,255,.7);text-decoration:none;transition:color .15s;}
+.mm-breadcrumb a:hover{color:#fff;}
+.mm-breadcrumb .bc-sep{opacity:.4;font-size:.65rem;}
+.mm-breadcrumb .bc-cur{color:#fff;font-weight:700;}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,#064e3b 0%,#065f46 60%,#047857 100%);color:#fff;padding:26px 28px 20px;}
+.hero h1{font-size:1.35rem;font-weight:800;letter-spacing:-.01em;margin-bottom:4px;}
+.hero p{font-size:.82rem;opacity:.75;max-width:600px;}
+.hero-stats{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap;}
+.hstat{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:8px 16px;text-align:center;}
+.hstat .num{font-size:1.35rem;font-weight:800;line-height:1;}
+.hstat .lbl{font-size:.62rem;opacity:.7;margin-top:2px;}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 20px;display:flex;flex-direction:column;gap:8px;position:sticky;top:46px;z-index:800;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.fb-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.fb-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;white-space:nowrap;min-width:80px;}
+.sb-search{padding:6px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.75rem;font-family:inherit;outline:none;color:#1e293b;width:300px;flex-shrink:0;}
+.sb-search:focus{border-color:#059669;box-shadow:0 0 0 2px rgba(5,150,105,.12);}
+.fb-chips{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:.71rem;color:#475569;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.chip:hover{background:#f0fdf4;border-color:#6ee7b7;color:#065f46;}
+.chip.active{background:#059669;border-color:#059669;color:#fff;font-weight:700;}
+.chip .chip-ct{font-size:.62rem;font-weight:700;opacity:.7;margin-left:2px;}
+.chip.active .chip-ct{opacity:.85;}
+.svc-select{padding:6px 32px 6px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.75rem;font-family:inherit;outline:none;color:#1e293b;background:#f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;-webkit-appearance:none;appearance:none;cursor:pointer;min-width:280px;max-width:480px;}
+.svc-select:focus{border-color:#059669;box-shadow:0 0 0 2px rgba(5,150,105,.12);}
+.svc-select.has-value{border-color:#059669;background-color:#f0fdf4;color:#065f46;font-weight:600;}
+.reset-btn{display:none;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1px solid #fecaca;background:#fef2f2;color:#dc2626;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .14s;white-space:nowrap;}
+.reset-btn:hover{background:#fee2e2;}
+.reset-btn.visible{display:inline-flex;}
+
+/* ── MAIN CONTENT ── */
+.main{flex:1;padding:18px 20px;overflow-y:auto;}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.tb-info{font-size:.75rem;color:#64748b;flex:1;}
+.tb-info strong{color:#1e293b;}
+
+/* ── FEES TABLE ── */
+.fees-table-wrap{background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.fees-table-header{padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;}
+.fees-table-title{font-size:.82rem;font-weight:700;color:#0f172a;}
+.fees-table-sub{font-size:.68rem;color:#64748b;margin-top:1px;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:#f8fafc;padding:8px 12px;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#64748b;border-bottom:2px solid #e2e8f0;white-space:nowrap;}
+thead th.num-col{text-align:right;}
+tbody tr{border-bottom:1px solid #f1f5f9;transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#f8fafc;}
+tbody td{padding:9px 12px;font-size:.76rem;color:#334155;vertical-align:top;}
+tbody td.num-col{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:#065f46;}
+tbody td.svc-col{max-width:260px;}
+.svc-id-badge{display:inline-block;background:#f1f5f9;color:#64748b;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:4px;margin-bottom:3px;font-family:monospace;}
+.svc-name{font-size:.74rem;font-weight:600;color:#0f172a;}
+.mandatory-yes{display:inline-flex;align-items:center;gap:3px;background:#fef3c7;color:#92400e;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:4px;}
+.mandatory-no{display:inline-flex;align-items:center;gap:3px;background:#f1f5f9;color:#94a3b8;font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:4px;}
+.vat-badge{display:inline-flex;align-items:center;gap:3px;background:#dbeafe;color:#1d4ed8;font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:4px;}
+.refund-yes{display:inline-block;background:#dcfce7;color:#15803d;font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:4px;}
+.refund-no{display:inline-block;background:#fee2e2;color:#b91c1c;font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:4px;}
+.refund-na{display:inline-block;background:#f1f5f9;color:#94a3b8;font-size:.63rem;font-weight:700;padding:2px 7px;border-radius:4px;}
+.condition-text{font-size:.68rem;color:#64748b;font-style:italic;margin-top:3px;line-height:1.35;}
+.ben-text{font-size:.72rem;color:#475569;}
+.no-results{padding:40px;text-align:center;color:#94a3b8;}
+.no-results .nr-icon{font-size:2rem;margin-bottom:8px;}
+.no-results .nr-text{font-size:.85rem;font-weight:600;color:#64748b;}
+.no-results .nr-sub{font-size:.75rem;margin-top:4px;}
+
+/* ── SUMMARY CARDS (when service selected) ── */
+.summary-row{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.sum-card{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:10px 16px;flex:1;min-width:120px;}
+.sum-card .sc-val{font-size:1.2rem;font-weight:800;color:#059669;}
+.sum-card .sc-lbl{font-size:.65rem;color:#64748b;margin-top:2px;}
+
+/* ── LOADING OVERLAY ── */
+#loadingOverlay{position:fixed;inset:0;background:rgba(15,23,42,.6);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(3px);}
+.lo-box{background:#fff;border-radius:14px;padding:28px 36px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.lo-spinner{width:36px;height:36px;border:3px solid #e2e8f0;border-top-color:#059669;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+.lo-text{font-size:.82rem;font-weight:600;color:#334155;}
+.lo-sub{font-size:.7rem;color:#94a3b8;margin-top:4px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── EMPTY STATE (service not selected yet) ── */
+.prompt-state{display:flex;align-items:center;justify-content:center;flex:1;padding:40px;}
+.ps-box{background:#fff;border-radius:16px;border:2px dashed #d1fae5;padding:40px 48px;text-align:center;max-width:420px;}
+.ps-icon{font-size:2.5rem;margin-bottom:12px;}
+.ps-title{font-size:1rem;font-weight:800;color:#065f46;margin-bottom:6px;}
+.ps-sub{font-size:.8rem;color:#6b7280;line-height:1.55;}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay">
+  <div class="lo-box">
+    <div class="lo-spinner"></div>
+    <div class="lo-text">Loading Fees Data…</div>
+    <div class="lo-sub">Connecting to Supabase</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="mega-menu" id="megaMenu">
+  <div class="mm-brand">
+    <span class="mm-logo">FIS</span>
+    <div style="display:flex;flex-direction:column;gap:1px;">
+      <div class="mm-breadcrumb">
+        <a href="home.html"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg> Home</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Fees Documentation</span>
+      </div>
+    </div>
+    <span class="mm-badge" id="mmBadge">— Fees</span>
+  </div>
+  <div class="mm-actions">
+    <a href="home.html" class="mm-btn mm-back"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg> Back</a>
+    <div class="mm-sep"></div>
+    <button class="mm-btn mm-exit" onclick="mmSignOut()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sign Out</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>💰 Fees Documentation</h1>
+  <p>Structured fee schedules for all FIS services — mandatory charges, VAT, refundability, and beneficiary details.</p>
+  <div class="hero-stats">
+    <div class="hstat"><div class="num" id="statFees">—</div><div class="lbl">Total Fee Lines</div></div>
+    <div class="hstat"><div class="num" id="statServices">—</div><div class="lbl">Services with Fees</div></div>
+    <div class="hstat"><div class="num" id="statMandatory">—</div><div class="lbl">Mandatory Fees</div></div>
+    <div class="hstat"><div class="num" id="statVAT">—</div><div class="lbl">VAT-Applicable</div></div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="fb-row">
+    <span class="fb-label">Service</span>
+    <select class="svc-select" id="svcSelect" onchange="onServiceChange()">
+      <option value="">— All Services —</option>
+    </select>
+    <button class="reset-btn" id="resetBtn" onclick="resetFilters()">✕ Reset</button>
+  </div>
+  <div class="fb-row">
+    <span class="fb-label">Filter</span>
+    <div class="fb-chips" id="filterChips">
+      <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All <span class="chip-ct" id="ctAll">—</span></button>
+      <button class="chip" data-filter="mandatory" onclick="setFilter('mandatory',this)">Mandatory <span class="chip-ct" id="ctMandatory">—</span></button>
+      <button class="chip" data-filter="optional" onclick="setFilter('optional',this)">Optional <span class="chip-ct" id="ctOptional">—</span></button>
+      <button class="chip" data-filter="vat" onclick="setFilter('vat',this)">VAT-Applicable <span class="chip-ct" id="ctVAT">—</span></button>
+      <button class="chip" data-filter="refundable" onclick="setFilter('refundable',this)">Refundable <span class="chip-ct" id="ctRefundable">—</span></button>
+    </div>
+    <input type="text" class="sb-search" id="feeSearch" placeholder="Search fee description…" oninput="applyFilters()">
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainContent">
+  <!-- Prompt state shown until a filter is active -->
+  <div class="prompt-state" id="promptState">
+    <div class="ps-box">
+      <div class="ps-icon">💰</div>
+      <div class="ps-title">Select a Service to View Fees</div>
+      <div class="ps-sub">Choose a service from the dropdown above to see its detailed fee schedule, or browse all fees using the filter chips.</div>
+    </div>
+  </div>
+
+  <!-- Fee content shown when data is active -->
+  <div id="feesContent" style="display:none;">
+    <div class="summary-row" id="summaryRow"></div>
+    <div class="toolbar">
+      <div class="tb-info" id="tbInfo"></div>
+    </div>
+    <div class="fees-table-wrap">
+      <div class="fees-table-header">
+        <div>
+          <div class="fees-table-title" id="tableTitle">Fee Schedule</div>
+          <div class="fees-table-sub" id="tableSub"></div>
+        </div>
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth guard ──────────────────────────────────────────────────────────
+function mmSignOut(){
+  localStorage.removeItem('fis_kit_auth');
+  window.location.replace('login.html');
+}
+
+// ── Supabase config ─────────────────────────────────────────────────────
+var SB_URL = 'https://iqojerpqoowdjctishrg.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlxb2plcnBxb293ZGpjdGlzaHJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5OTQ3ODgsImV4cCI6MjA5NDU3MDc4OH0.SeVJdwdr_WU52gNSqSvTqPIelssUnDsqKeS4W97Rw0A';
+
+async function sbFetch(table, params){
+  params = params || '';
+  var url = SB_URL + '/rest/v1/' + table + '?select=*' + (params ? '&' + params : '') + '&limit=10000';
+  var r = await fetch(url, {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});
+  if(!r.ok) throw new Error('Supabase error: ' + r.status);
+  return r.json();
+}
+
+// ── State ───────────────────────────────────────────────────────────────
+var ALL_FEES = [];         // raw from DB [{app_type_id, desc_en, ...}]
+var SERVICES = [];         // [{app_type_id, app_type_en, product_category}]
+var SVC_MAP = {};          // id → service row
+var activeFilter = 'all';
+var activeService = '';
+
+// ── Init ────────────────────────────────────────────────────────────────
+async function initPage(){
+  try {
+    var [fees, svcs] = await Promise.all([
+      sbFetch('FIS_KIT_fees'),
+      sbFetch('FIS_KIT_services', 'order=seq.asc')
+    ]);
+
+    ALL_FEES = fees;
+    SERVICES = svcs;
+    SERVICES.forEach(function(s){ SVC_MAP[s.app_type_id] = s; });
+
+    // Populate service dropdown
+    var sel = document.getElementById('svcSelect');
+    SERVICES.forEach(function(s){
+      if(!fees.some(function(f){ return f.app_type_id === s.app_type_id; })) return;
+      var opt = document.createElement('option');
+      opt.value = s.app_type_id;
+      opt.textContent = '[' + s.app_type_id + '] ' + s.app_type_en;
+      sel.appendChild(opt);
+    });
+
+    // Hero stats
+    var uniqueSvcs = new Set(fees.map(function(f){ return f.app_type_id; })).size;
+    var mandatoryCount = fees.filter(function(f){ return f.mandatory && f.mandatory.toLowerCase() === 'yes'; }).length;
+    var vatCount = fees.filter(function(f){ return f.is_vat === true; }).length;
+    document.getElementById('statFees').textContent = fees.length;
+    document.getElementById('statServices').textContent = uniqueSvcs;
+    document.getElementById('statMandatory').textContent = mandatoryCount;
+    document.getElementById('statVAT').textContent = vatCount;
+
+    // Nav badge
+    document.getElementById('mmBadge').textContent = fees.length + ' Fee Lines';
+
+    document.getElementById('loadingOverlay').style.display = 'none';
+
+    // Check URL param for pre-select
+    var params = new URLSearchParams(window.location.search);
+    var preId = params.get('id');
+    if(preId){
+      sel.value = preId;
+      onServiceChange();
+    }
+
+  } catch(e){
+    document.getElementById('loadingOverlay').style.display = 'none';
+    alert('Failed to load data: ' + e.message);
+  }
+}
+
+// ── Service change ───────────────────────────────────────────────────────
+function onServiceChange(){
+  activeService = document.getElementById('svcSelect').value;
+  var sel = document.getElementById('svcSelect');
+  if(activeService){
+    sel.classList.add('has-value');
+    document.getElementById('resetBtn').classList.add('visible');
+  } else {
+    sel.classList.remove('has-value');
+  }
+  applyFilters();
+}
+
+// ── Filter chip ──────────────────────────────────────────────────────────
+function setFilter(f, el){
+  activeFilter = f;
+  document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+  el.classList.add('active');
+  applyFilters();
+}
+
+// ── Reset ────────────────────────────────────────────────────────────────
+function resetFilters(){
+  activeService = '';
+  activeFilter = 'all';
+  document.getElementById('svcSelect').value = '';
+  document.getElementById('svcSelect').classList.remove('has-value');
+  document.getElementById('feeSearch').value = '';
+  document.getElementById('resetBtn').classList.remove('visible');
+  document.querySelectorAll('.chip').forEach(function(c,i){ c.classList.toggle('active', i===0); });
+  document.getElementById('promptState').style.display = '';
+  document.getElementById('feesContent').style.display = 'none';
+  updateChipCounts(ALL_FEES);
+}
+
+// ── Apply filters ─────────────────────────────────────────────────────────
+function applyFilters(){
+  var query = document.getElementById('feeSearch').value.trim().toLowerCase();
+
+  // Base set: all or by service
+  var base = activeService
+    ? ALL_FEES.filter(function(f){ return f.app_type_id === activeService; })
+    : ALL_FEES;
+
+  // Update chip counts based on service selection
+  updateChipCounts(base);
+
+  // Apply type filter
+  var filtered = base.filter(function(f){
+    if(activeFilter === 'mandatory') return f.mandatory && f.mandatory.toLowerCase() === 'yes';
+    if(activeFilter === 'optional')  return !f.mandatory || f.mandatory.toLowerCase() !== 'yes';
+    if(activeFilter === 'vat')       return f.is_vat === true;
+    if(activeFilter === 'refundable') return f.refundable && f.refundable.toLowerCase() === 'yes';
+    return true;
+  });
+
+  // Apply search
+  if(query){
+    filtered = filtered.filter(function(f){
+      return (f.desc_en||'').toLowerCase().includes(query)
+          || (f.desc_ar||'').toLowerCase().includes(query)
+          || (f.beneficiary||'').toLowerCase().includes(query)
+          || (f.condition||'').toLowerCase().includes(query)
+          || (f.app_type_id||'').toLowerCase().includes(query);
+    });
+  }
+
+  var hasActivity = activeService || activeFilter !== 'all' || query;
+
+  if(hasActivity || activeService){
+    document.getElementById('promptState').style.display = 'none';
+    document.getElementById('feesContent').style.display = '';
+    renderFees(filtered, base);
+  } else {
+    document.getElementById('promptState').style.display = '';
+    document.getElementById('feesContent').style.display = 'none';
+  }
+}
+
+// ── Update chip counts ────────────────────────────────────────────────────
+function updateChipCounts(base){
+  document.getElementById('ctAll').textContent = base.length;
+  document.getElementById('ctMandatory').textContent = base.filter(function(f){ return f.mandatory && f.mandatory.toLowerCase()==='yes'; }).length;
+  document.getElementById('ctOptional').textContent = base.filter(function(f){ return !f.mandatory || f.mandatory.toLowerCase()!=='yes'; }).length;
+  document.getElementById('ctVAT').textContent = base.filter(function(f){ return f.is_vat===true; }).length;
+  document.getElementById('ctRefundable').textContent = base.filter(function(f){ return f.refundable && f.refundable.toLowerCase()==='yes'; }).length;
+}
+
+// ── Render fees ────────────────────────────────────────────────────────────
+function renderFees(rows, base){
+  // Summary cards
+  var totalAmt = 0;
+  rows.forEach(function(f){ if(f.amount) totalAmt += parseFloat(f.amount)||0; });
+  var mandCount = rows.filter(function(f){ return f.mandatory && f.mandatory.toLowerCase()==='yes'; }).length;
+  var vatCount = rows.filter(function(f){ return f.is_vat===true; }).length;
+
+  var svcLabel = activeService
+    ? (SVC_MAP[activeService] ? SVC_MAP[activeService].app_type_en : activeService)
+    : 'All Services';
+
+  document.getElementById('tableTitle').textContent = svcLabel + ' — Fee Schedule';
+  document.getElementById('tableSub').textContent = rows.length + ' fee line' + (rows.length===1?'':'s');
+
+  // Summary row
+  var sumHTML = '';
+  if(activeService){
+    sumHTML = '<div class="sum-card"><div class="sc-val">' + rows.length + '</div><div class="sc-lbl">Fee Lines</div></div>'
+            + '<div class="sum-card"><div class="sc-val">AED ' + totalAmt.toLocaleString('en', {minimumFractionDigits:0, maximumFractionDigits:0}) + '</div><div class="sc-lbl">Total Amount</div></div>'
+            + '<div class="sum-card"><div class="sc-val">' + mandCount + '</div><div class="sc-lbl">Mandatory</div></div>'
+            + '<div class="sum-card"><div class="sc-val">' + vatCount + '</div><div class="sc-lbl">VAT Applicable</div></div>';
+  }
+  document.getElementById('summaryRow').innerHTML = sumHTML;
+
+  // Toolbar info
+  document.getElementById('tbInfo').innerHTML = 'Showing <strong>' + rows.length + '</strong> fee' + (rows.length===1?'':'s') + (rows.length < base.length ? ' of ' + base.length : '') + (activeService ? ' for <strong>' + svcLabel + '</strong>' : ' across all services');
+
+  // Table
+  if(rows.length === 0){
+    document.getElementById('tableBody').innerHTML = '<div class="no-results"><div class="nr-icon">🔍</div><div class="nr-text">No fees match your filters</div><div class="nr-sub">Try adjusting the search or filter criteria.</div></div>';
+    return;
+  }
+
+  // Group by service if no specific service selected
+  var html = '';
+  if(!activeService){
+    // Group by app_type_id
+    var groups = {};
+    var groupOrder = [];
+    rows.forEach(function(f){
+      if(!groups[f.app_type_id]){
+        groups[f.app_type_id] = [];
+        groupOrder.push(f.app_type_id);
+      }
+      groups[f.app_type_id].push(f);
+    });
+    groupOrder.forEach(function(id){
+      var svc = SVC_MAP[id];
+      var grpRows = groups[id];
+      var grpTotal = grpRows.reduce(function(s,f){ return s + (parseFloat(f.amount)||0); }, 0);
+      html += '<div style="padding:10px 16px 4px;background:#f8fafc;border-top:2px solid #e2e8f0;display:flex;align-items:center;gap:8px;">'
+            + '<span style="font-size:.63rem;font-weight:700;font-family:monospace;background:#e2e8f0;color:#475569;padding:1px 6px;border-radius:4px;">' + id + '</span>'
+            + '<span style="font-size:.78rem;font-weight:700;color:#0f172a;">' + (svc ? svc.app_type_en : id) + '</span>'
+            + '<span style="margin-left:auto;font-size:.7rem;color:#059669;font-weight:700;">AED ' + grpTotal.toLocaleString('en',{minimumFractionDigits:0,maximumFractionDigits:0}) + '</span>'
+            + '</div>';
+      html += buildTableRows(grpRows, false);
+    });
+  } else {
+    html = buildTableRows(rows, true);
+  }
+
+  document.getElementById('tableBody').innerHTML = '<table><thead><tr>'
+    + (activeService ? '' : '<th>Service</th>')
+    + '<th>Fee Description</th><th>Beneficiary</th><th class="num-col">Amount (AED)</th><th>Mandatory</th><th>VAT</th><th>Refundable</th>'
+    + '</tr></thead><tbody>' + html + '</tbody></table>';
+}
+
+function buildTableRows(rows, singleService){
+  return rows.map(function(f){
+    var mandBadge = (f.mandatory && f.mandatory.toLowerCase()==='yes')
+      ? '<span class="mandatory-yes">✓ Yes</span>'
+      : '<span class="mandatory-no">— No</span>';
+    var vatBadge = f.is_vat ? '<span class="vat-badge">+VAT</span>' : '—';
+    var refBadge = f.refundable
+      ? (f.refundable.toLowerCase()==='yes' ? '<span class="refund-yes">Yes</span>'
+       : f.refundable.toLowerCase()==='no'  ? '<span class="refund-no">No</span>'
+       : '<span class="refund-na">' + f.refundable + '</span>')
+      : '<span class="refund-na">—</span>';
+    var amtText = f.amount != null ? 'AED&nbsp;' + parseFloat(f.amount).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+    var descEN = escHtml(f.desc_en || '');
+    var descAR = f.desc_ar ? '<span style="font-size:.67rem;color:#94a3b8;display:block;direction:rtl;text-align:right;margin-top:2px;">' + escHtml(f.desc_ar) + '</span>' : '';
+    var cond = f.condition ? '<div class="condition-text">' + escHtml(f.condition) + '</div>' : '';
+    var svcCol = singleService ? '' : '<td class="svc-col"><span class="svc-id-badge">' + escHtml(f.app_type_id) + '</span><div class="svc-name">' + escHtml(SVC_MAP[f.app_type_id] ? SVC_MAP[f.app_type_id].app_type_en : f.app_type_id) + '</div></td>';
+    return '<tr>'
+      + svcCol
+      + '<td><div>' + descEN + '</div>' + descAR + cond + '</td>'
+      + '<td class="ben-text">' + escHtml(f.beneficiary || '—') + '</td>'
+      + '<td class="num-col">' + amtText + '</td>'
+      + '<td>' + mandBadge + '</td>'
+      + '<td>' + vatBadge + '</td>'
+      + '<td>' + refBadge + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+initPage();
+</script>
+</body>
+</html>

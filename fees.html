@@ -45,13 +45,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .hstat .lbl{font-size:.62rem;opacity:.7;margin-top:2px;}
 
 /* ── FILTER BAR ── */
-.filter-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:10px 20px;display:flex;flex-direction:column;gap:8px;position:sticky;top:46px;z-index:800;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.filter-bar{background:#fff;border-bottom:1px solid #e2e8f0;padding:12px 24px;display:flex;flex-direction:column;gap:10px;position:sticky;top:46px;z-index:800;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .fb-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.fb-label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;white-space:nowrap;min-width:80px;}
-.sb-search{padding:6px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:.75rem;font-family:inherit;outline:none;color:#1e293b;width:300px;flex-shrink:0;}
-.sb-search:focus{border-color:#1a56db;box-shadow:0 0 0 2px rgba(26,86,219,.12);}
+.fb-label{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;white-space:nowrap;width:80px;flex-shrink:0;}
+/* Search inputs */
+.fb-input{padding:7px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.75rem;font-family:inherit;outline:none;color:#1e293b;background:#f8fafc;transition:border-color .15s,box-shadow .15s;}
+.fb-input:focus{border-color:#1a56db;background:#fff;box-shadow:0 0 0 3px rgba(26,86,219,.1);}
+.fb-input::placeholder{color:#cbd5e1;}
+.fb-input-wide{width:260px;}
+.fb-input-mid{width:180px;}
+/* Channel select */
+.fb-select{padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.75rem;font-family:inherit;outline:none;color:#1e293b;background:#f8fafc;cursor:pointer;transition:border-color .15s;}
+.fb-select:focus{border-color:#1a56db;background:#fff;}
+.fb-select.has-value{border-color:#1a56db;background:#eff6ff;color:#1a56db;font-weight:600;}
+/* Chips */
 .fb-chips{display:flex;gap:5px;flex-wrap:wrap;flex:1;}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:.71rem;color:#475569;font-family:inherit;transition:all .12s;white-space:nowrap;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1.5px solid #e2e8f0;background:#f8fafc;cursor:pointer;font-size:.71rem;font-weight:600;color:#475569;font-family:inherit;transition:all .12s;white-space:nowrap;}
+/* Active filter indicator */
+.active-filters-row{display:none;align-items:center;gap:6px;flex-wrap:wrap;}
+.active-filters-row.visible{display:flex;}
+.af-pill{display:inline-flex;align-items:center;gap:5px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:600;color:#1a56db;}
+.af-pill button{background:none;border:none;cursor:pointer;color:#1a56db;font-size:.85rem;line-height:1;padding:0;margin-left:1px;}
+.clear-all-btn{margin-left:auto;font-size:.68rem;font-weight:700;color:#94a3b8;background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:6px;}
+.clear-all-btn:hover{color:#ef4444;background:#fee2e2;}
 .chip:hover{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a;}
 .chip.active{background:#1a56db;border-color:#1a56db;color:#fff;font-weight:700;}
 .chip .chip-ct{font-size:.62rem;font-weight:700;opacity:.7;margin-left:2px;}
@@ -165,15 +181,24 @@ tbody td.svc-col{max-width:260px;}
 
 <!-- FILTER BAR -->
 <div class="filter-bar">
+  <!-- Row 1: Service + Channel + Search -->
   <div class="fb-row">
     <span class="fb-label">Service</span>
-    <select class="svc-select" id="svcSelect" onchange="onServiceChange()">
+    <select class="fb-select fb-input-wide" id="svcSelect" onchange="onServiceChange()">
       <option value="">— All Services —</option>
     </select>
-    <button class="reset-btn" id="resetBtn" onclick="resetFilters()">✕ Reset</button>
+    <select class="fb-select" id="channelSelect" onchange="applyFilters();updateActivePills()" style="width:170px;">
+      <option value="">All Channels</option>
+      <option value="channel">Channel</option>
+      <option value="counter">Counter</option>
+    </select>
+    <input type="text" class="fb-input fb-input-wide" id="feeSearch" placeholder="🔍  Search fee name or description…" oninput="applyFilters();updateActivePills()">
+    <input type="text" class="fb-input fb-input-mid" id="beneficiarySearch" placeholder="🏦  Beneficiary…" oninput="applyFilters();updateActivePills()">
+    <button class="reset-btn" id="resetBtn" onclick="resetFilters()" style="margin-left:auto;">✕ Reset All</button>
   </div>
+  <!-- Row 2: Type chips -->
   <div class="fb-row">
-    <span class="fb-label">Filter</span>
+    <span class="fb-label">Type</span>
     <div class="fb-chips" id="filterChips">
       <button class="chip active" data-filter="all" onclick="setFilter('all',this)">All <span class="chip-ct" id="ctAll">—</span></button>
       <button class="chip" data-filter="mandatory" onclick="setFilter('mandatory',this)">Mandatory <span class="chip-ct" id="ctMandatory">—</span></button>
@@ -181,7 +206,12 @@ tbody td.svc-col{max-width:260px;}
       <button class="chip" data-filter="vat" onclick="setFilter('vat',this)">VAT-Applicable <span class="chip-ct" id="ctVAT">—</span></button>
       <button class="chip" data-filter="refundable" onclick="setFilter('refundable',this)">Refundable <span class="chip-ct" id="ctRefundable">—</span></button>
     </div>
-    <input type="text" class="sb-search" id="feeSearch" placeholder="Search fee description…" oninput="applyFilters()">
+  </div>
+  <!-- Row 3: Active filter pills (shown when filters active) -->
+  <div class="active-filters-row" id="activeFiltersRow">
+    <span style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;">Active:</span>
+    <div id="activePillsWrap" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+    <button class="clear-all-btn" onclick="resetFilters()">Clear all ✕</button>
   </div>
 </div>
 
@@ -294,13 +324,10 @@ async function initPage(){
 function onServiceChange(){
   activeService = document.getElementById('svcSelect').value;
   var sel = document.getElementById('svcSelect');
-  if(activeService){
-    sel.classList.add('has-value');
-    document.getElementById('resetBtn').classList.add('visible');
-  } else {
-    sel.classList.remove('has-value');
-  }
+  sel.classList.toggle('has-value', !!activeService);
+  document.getElementById('resetBtn').classList.toggle('visible', !!activeService);
   applyFilters();
+  updateActivePills();
 }
 
 // ── Filter chip ──────────────────────────────────────────────────────────
@@ -309,6 +336,7 @@ function setFilter(f, el){
   document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
   el.classList.add('active');
   applyFilters();
+  updateActivePills();
 }
 
 // ── Reset ────────────────────────────────────────────────────────────────
@@ -317,49 +345,70 @@ function resetFilters(){
   activeFilter = 'all';
   document.getElementById('svcSelect').value = '';
   document.getElementById('svcSelect').classList.remove('has-value');
+  document.getElementById('channelSelect').value = '';
+  document.getElementById('channelSelect').classList.remove('has-value');
   document.getElementById('feeSearch').value = '';
+  document.getElementById('beneficiarySearch').value = '';
   document.getElementById('resetBtn').classList.remove('visible');
   document.querySelectorAll('.chip').forEach(function(c,i){ c.classList.toggle('active', i===0); });
   document.getElementById('promptState').style.display = '';
   document.getElementById('feesContent').style.display = 'none';
   updateChipCounts(ALL_FEES);
+  updateActivePills();
 }
 
 // ── Apply filters ─────────────────────────────────────────────────────────
 function applyFilters(){
-  var query = document.getElementById('feeSearch').value.trim().toLowerCase();
+  var query       = document.getElementById('feeSearch').value.trim().toLowerCase();
+  var benQuery    = document.getElementById('beneficiarySearch').value.trim().toLowerCase();
+  var chFilter    = document.getElementById('channelSelect').value.toLowerCase();
 
   // Base set: all or by service
   var base = activeService
     ? ALL_FEES.filter(function(f){ return f.app_type_id === activeService; })
     : ALL_FEES;
 
-  // Update chip counts based on service selection
+  // Channel filter (uses condition field: 'Channel' or 'Counter')
+  if(chFilter){
+    base = base.filter(function(f){
+      return (f.condition||'').toLowerCase() === chFilter;
+    });
+  }
+
+  // Update chip counts
   updateChipCounts(base);
 
   // Apply type filter
   var filtered = base.filter(function(f){
-    if(activeFilter === 'mandatory') return f.mandatory && f.mandatory.toLowerCase() === 'yes';
-    if(activeFilter === 'optional')  return !f.mandatory || f.mandatory.toLowerCase() !== 'yes';
-    if(activeFilter === 'vat')       return f.is_vat === true;
+    if(activeFilter === 'mandatory')  return f.mandatory && f.mandatory.toLowerCase() === 'yes';
+    if(activeFilter === 'optional')   return !f.mandatory || f.mandatory.toLowerCase() !== 'yes';
+    if(activeFilter === 'vat')        return f.is_vat === true;
     if(activeFilter === 'refundable') return f.refundable && f.refundable.toLowerCase() === 'yes';
     return true;
   });
 
-  // Apply search
+  // Fee name/description search
   if(query){
     filtered = filtered.filter(function(f){
       return (f.desc_en||'').toLowerCase().includes(query)
           || (f.desc_ar||'').toLowerCase().includes(query)
-          || (f.beneficiary||'').toLowerCase().includes(query)
           || (f.condition||'').toLowerCase().includes(query)
-          || (f.app_type_id||'').toLowerCase().includes(query);
+          || String(f.vc_id||'').includes(query)
+          || String(f.app_type_id||'').includes(query)
+          || (SVC_MAP[f.app_type_id] ? SVC_MAP[f.app_type_id].app_type_en.toLowerCase().includes(query) : false);
     });
   }
 
-  var hasActivity = activeService || activeFilter !== 'all' || query;
+  // Beneficiary search
+  if(benQuery){
+    filtered = filtered.filter(function(f){
+      return (f.beneficiary||'').toLowerCase().includes(benQuery);
+    });
+  }
 
-  if(hasActivity || activeService){
+  var hasActivity = activeService || activeFilter !== 'all' || query || benQuery || chFilter;
+
+  if(hasActivity){
     document.getElementById('promptState').style.display = 'none';
     document.getElementById('feesContent').style.display = '';
     renderFees(filtered, base);
@@ -367,6 +416,44 @@ function applyFilters(){
     document.getElementById('promptState').style.display = '';
     document.getElementById('feesContent').style.display = 'none';
   }
+}
+
+// ── Active filter pills ───────────────────────────────────────────────────
+function updateActivePills(){
+  var pills = [];
+  var svcVal = document.getElementById('svcSelect').value;
+  var chVal  = document.getElementById('channelSelect').value;
+  var q      = document.getElementById('feeSearch').value.trim();
+  var bq     = document.getElementById('beneficiarySearch').value.trim();
+
+  if(svcVal){
+    var lbl = SVC_MAP[svcVal] ? SVC_MAP[svcVal].app_type_en : svcVal;
+    pills.push({label:'Service: '+lbl, clear:function(){ document.getElementById('svcSelect').value=''; onServiceChange(); }});
+  }
+  if(chVal){
+    pills.push({label:'Channel: '+chVal.charAt(0).toUpperCase()+chVal.slice(1), clear:function(){ document.getElementById('channelSelect').value=''; applyFilters(); updateActivePills(); }});
+  }
+  if(activeFilter !== 'all'){
+    pills.push({label:'Type: '+activeFilter.charAt(0).toUpperCase()+activeFilter.slice(1), clear:function(){ setFilter('all', document.querySelector('.chip[data-filter="all"]')); }});
+  }
+  if(q){
+    pills.push({label:'Search: "'+q+'"', clear:function(){ document.getElementById('feeSearch').value=''; applyFilters(); updateActivePills(); }});
+  }
+  if(bq){
+    pills.push({label:'Beneficiary: "'+bq+'"', clear:function(){ document.getElementById('beneficiarySearch').value=''; applyFilters(); updateActivePills(); }});
+  }
+
+  var wrap = document.getElementById('activePillsWrap');
+  var row  = document.getElementById('activeFiltersRow');
+  wrap.innerHTML = '';
+  pills.forEach(function(p, i){
+    var el = document.createElement('span');
+    el.className = 'af-pill';
+    el.innerHTML = p.label + '<button onclick="('+p.clear.toString()+')()">✕</button>';
+    wrap.appendChild(el);
+  });
+  row.classList.toggle('visible', pills.length > 0);
+  document.getElementById('resetBtn').classList.toggle('visible', pills.length > 0);
 }
 
 // ── Update chip counts ────────────────────────────────────────────────────

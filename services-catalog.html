@@ -40,15 +40,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .header-title p{font-size:.78rem;color:rgba(255,255,255,.65);}
 .header-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 12px;font-size:.7rem;font-weight:700;color:#fff;letter-spacing:.05em;text-transform:uppercase;}
 
-/* ── CHANNEL CHIPS IN SEARCH BAR ── */
-.sb-ch-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:.71rem;font-weight:700;cursor:pointer;user-select:none;border:1.5px solid transparent;transition:all .13s;}
+/* ── CHANNEL FILTER BAR ── */
+.filter-bar{
+  max-width:1200px;margin:0 auto;padding:14px 0 4px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.filter-bar-label{
+  font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:rgba(255,255,255,.5);white-space:nowrap;padding-right:4px;
+}
+.sb-ch-chip{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 13px;
+  border-radius:20px;font-size:.72rem;font-weight:700;cursor:pointer;
+  user-select:none;border:1.5px solid transparent;transition:all .15s;
+  white-space:nowrap;
+}
 .sb-ch-chip input{display:none;}
 .counter-chip{background:var(--ch-counter-bg);color:var(--ch-counter);border-color:#fcd34d;}
 .indi-chip{background:var(--ch-indi-bg);color:var(--ch-indi);border-color:#c4b5fd;}
 .est-chip{background:var(--ch-est-bg);color:var(--ch-est);border-color:#86efac;}
 .typing-chip{background:var(--ch-typing-bg);color:var(--ch-typing);border-color:#f9a8d4;}
 .mohre-chip{background:var(--ch-mohre-bg);color:var(--ch-mohre);border-color:#67e8f9;}
-.sb-ch-chip:has(input:not(:checked)){opacity:.38;filter:grayscale(.5);}
+.sb-ch-chip:has(input:not(:checked)){opacity:.35;filter:grayscale(.6);}
+.sb-ch-chip:has(input:not(:checked)):hover{opacity:.6;filter:grayscale(.2);}
+/* Reset button */
+.filter-reset-btn{
+  margin-left:auto;display:inline-flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.12);color:rgba(255,255,255,.75);
+  border:1px solid rgba(255,255,255,.2);border-radius:20px;
+  padding:5px 13px;font-size:.68rem;font-weight:700;cursor:pointer;
+  transition:all .15s;font-family:inherit;white-space:nowrap;
+}
+.filter-reset-btn:hover{background:rgba(255,255,255,.22);color:#fff;border-color:rgba(255,255,255,.4);}
+.filter-reset-btn.hidden{opacity:0;pointer-events:none;}
 
 /* ── SEARCH BAR ── */
 .search-bar-wrap{background:rgba(255,255,255,.1);border-top:1px solid rgba(255,255,255,.08);padding:16px 32px;}
@@ -459,13 +483,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
   </div>
   <!-- Channel filter chips -->
-  <div style="max-width:1200px;margin:10px auto 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 2px;">
-    <span style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.45);">Channel</span>
-    <label class="sb-ch-chip counter-chip"><input type="checkbox" value="counter" checked onchange="applyFilters()"/>Counter</label>
-    <label class="sb-ch-chip indi-chip"><input type="checkbox" value="indi" checked onchange="applyFilters()"/>SC – Individual</label>
-    <label class="sb-ch-chip est-chip"><input type="checkbox" value="est" checked onchange="applyFilters()"/>SC – Establishment</label>
-    <label class="sb-ch-chip typing-chip"><input type="checkbox" value="typing" checked onchange="applyFilters()"/>SC – Typing Center</label>
-    <label class="sb-ch-chip mohre-chip"><input type="checkbox" value="mohre" checked onchange="applyFilters()"/>MoHRE</label>
+  <div class="filter-bar">
+    <span class="filter-bar-label">Channel</span>
+    <label class="sb-ch-chip counter-chip"><input type="checkbox" value="counter" checked onchange="applyFilters();updateResetBtn()"/>Counter</label>
+    <label class="sb-ch-chip indi-chip"><input type="checkbox" value="indi" checked onchange="applyFilters();updateResetBtn()"/>SC – Individual</label>
+    <label class="sb-ch-chip est-chip"><input type="checkbox" value="est" checked onchange="applyFilters();updateResetBtn()"/>SC – Establishment</label>
+    <label class="sb-ch-chip typing-chip"><input type="checkbox" value="typing" checked onchange="applyFilters();updateResetBtn()"/>SC – Typing Center</label>
+    <label class="sb-ch-chip mohre-chip"><input type="checkbox" value="mohre" checked onchange="applyFilters();updateResetBtn()"/>MoHRE</label>
+    <button class="filter-reset-btn hidden" id="filterResetBtn" onclick="resetChannelFilter()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Reset Filter
+    </button>
   </div>
 </div>
 
@@ -886,7 +914,19 @@ function resetAll(){
   document.getElementById('searchClear').style.display='none';
   taChipId = null;
   taClear();
+  resetChannelFilter();
+}
+
+function resetChannelFilter(){
+  document.querySelectorAll('.sb-ch-chip input').forEach(cb => cb.checked = true);
+  updateResetBtn();
   applyFilters();
+}
+
+function updateResetBtn(){
+  const allChecked = [...document.querySelectorAll('.sb-ch-chip input')].every(cb => cb.checked);
+  const btn = document.getElementById('filterResetBtn');
+  if(btn) btn.classList.toggle('hidden', allChecked);
 }
 function setView(v) {
   currentView = v;

@@ -517,11 +517,10 @@ function setView(v){
 // ── MAIN FILTER ──────────────────────────────────────────────────────────
 function applyFilters(){
   var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
-  var results = ALL_RULES.filter(function(r){
+
+  function matchesBase(r){
     if(activeAppType !== 'all' && String(r['App Type ID']) !== String(activeAppType)) return false;
     if(activeSubType !== 'all' && String(r['App Sub Type Id']||'').trim() !== String(activeSubType)) return false;
-    if(activeChannel !== 'all' && r['Channel Name'] !== activeChannel) return false;
-    if(activeClassification !== 'all' && r['Rule classification'] !== activeClassification) return false;
     if(q){
       var hay = [
         r['App Type ID'], r['App Sub Type Id'], r['Rule Id'],
@@ -535,7 +534,46 @@ function applyFilters(){
       if(hay.indexOf(q) === -1) return false;
     }
     return true;
+  }
+
+  var results = ALL_RULES.filter(function(r){
+    if(!matchesBase(r)) return false;
+    if(activeChannel !== 'all' && r['Channel Name'] !== activeChannel) return false;
+    if(activeClassification !== 'all' && r['Rule classification'] !== activeClassification) return false;
+    return true;
   });
+
+  // Update channel chip counts (base + classification filter, excluding channel filter)
+  var chEl = document.getElementById('channelFilters');
+  if(chEl){
+    var baseForCh = ALL_RULES.filter(function(r){
+      if(!matchesBase(r)) return false;
+      if(activeClassification !== 'all' && r['Rule classification'] !== activeClassification) return false;
+      return true;
+    });
+    chEl.querySelectorAll('.sb-filter-btn').forEach(function(btn){
+      var v = btn.getAttribute('data-value');
+      var cnt = v === 'all' ? baseForCh.length : baseForCh.filter(function(r){ return r['Channel Name'] === v; }).length;
+      var span = btn.querySelector('.sb-count');
+      if(span) span.textContent = cnt;
+    });
+  }
+
+  // Update classification chip counts (base + channel filter, excluding classification filter)
+  var clEl = document.getElementById('classFilters');
+  if(clEl){
+    var baseForCls = ALL_RULES.filter(function(r){
+      if(!matchesBase(r)) return false;
+      if(activeChannel !== 'all' && r['Channel Name'] !== activeChannel) return false;
+      return true;
+    });
+    clEl.querySelectorAll('.sb-filter-btn').forEach(function(btn){
+      var v = btn.getAttribute('data-value');
+      var cnt = v === 'all' ? baseForCls.length : baseForCls.filter(function(r){ return r['Rule classification'] === v; }).length;
+      var span = btn.querySelector('.sb-count');
+      if(span) span.textContent = cnt;
+    });
+  }
 
   var ca = document.getElementById('contentArea');
   var tbi = document.getElementById('tbInfo');

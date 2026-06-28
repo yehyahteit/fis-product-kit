@@ -718,24 +718,32 @@ document.addEventListener('DOMContentLoaded', function(){
       'Pass Message in English': r.pass_msg_en,
       'Pass Message in Arabic': r.pass_msg_ar
     };});
+    // Rebuild SUB_TYPES from loaded data
+    SUB_TYPES = {};
+    ALL_RULES.forEach(function(r){
+      var aid = String(r['App Type ID']); var sid = String(r['App Sub Type Id']||'').trim();
+      if(!sid) return;
+      if(!SUB_TYPES[aid]) SUB_TYPES[aid] = {};
+      if(!SUB_TYPES[aid][sid]) SUB_TYPES[aid][sid] = {en: r['App Sub Type English Name'], ar: r['App Sub Type Arabic Name'], count: 0};
+      SUB_TYPES[aid][sid].count++;
+    });
     document.getElementById('loadingOverlay').style.display='none';
     buildSidebar();
+    applyFilters();
+    // Update hero stats
+    var uniqueAppTypes = new Set(ALL_RULES.map(function(r){ return r['App Type ID']; })).size;
+    var uniqueRules = new Set(ALL_RULES.map(function(r){ return r['Rule Id']; })).size;
+    var statServEl = document.getElementById('statServices');
+    if(statServEl) statServEl.textContent = uniqueAppTypes;
+    var statRulesEl = document.getElementById('statRules');
+    if(statRulesEl) statRulesEl.textContent = uniqueRules;
+    var mmBadgeEl = document.getElementById('mmBadge');
+    if(mmBadgeEl) mmBadgeEl.textContent = ALL_RULES.length + ' Rules';
   } catch(e){
     document.getElementById('loadingOverlay').innerHTML='<div style="color:#fff;text-align:center"><div style="font-size:2rem">⚠️</div><div>Failed to load data</div><div style="font-size:.8rem;opacity:.7;margin-top:6px">'+e.message+'</div></div>';
   }
 }
 initPage();
-  applyFilters();
-
-  // Update hero stats
-  var uniqueAppTypes = new Set(ALL_RULES.map(function(r){ return r['App Type ID']; })).size;
-  var uniqueRules = new Set(ALL_RULES.map(function(r){ return r['Rule Id']; })).size;
-  var statServEl = document.getElementById('statServices');
-  if(statServEl) statServEl.textContent = uniqueAppTypes;
-  var statRulesEl = document.getElementById('statRules');
-  if(statRulesEl) statRulesEl.textContent = uniqueRules;
-  var mmBadgeEl = document.getElementById('mmBadge');
-  if(mmBadgeEl) mmBadgeEl.textContent = ALL_RULES.length + ' Rules';
 });
 
 // Auth guard

@@ -157,6 +157,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .fees-btn.open svg.chev{transform:rotate(180deg);}
 .fees-area{display:none;margin-top:6px;}
 .fees-area.open{display:block;}
+.fees-toggle-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:.78rem;font-weight:700;color:#1e3a8a;cursor:pointer;margin-bottom:4px;font-family:inherit;transition:background .12s;}
+.fees-toggle-btn:hover{background:#dbeafe;}
+.fees-toggle-btn.open svg{transform:rotate(180deg);}
+.fees-toggle-btn svg{transition:transform .2s;flex-shrink:0;}
 .grp{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:8px;}
 .grp:last-child{margin-bottom:0;}
 .grp-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;gap:8px;flex-wrap:wrap;user-select:none;transition:background .1s;}
@@ -577,7 +581,7 @@ function renderRow(s) {
     {key:'mohre',   label:'MoHRE',       field:'Channel - MoHRE',             bg:'var(--ch-mohre-bg)',  color:'var(--ch-mohre)',  border:'#67e8f9'}
   ];
   const chBadges = chDefs
-    .filter(c => s[c.field] === 'Yes')
+    .filter(c => chVal(s[c.field]))
     .map(c => `<span style="display:inline-flex;align-items:center;font-size:.64rem;font-weight:700;padding:2px 8px;border-radius:20px;background:${c.bg};color:${c.color};border:1px solid ${c.border};white-space:nowrap;">${c.label}</span>`)
     .join('');
   return `<tr style="cursor:pointer;" onclick="openDrawer(${s.Seq})" title="Click to view details &amp; fees">
@@ -759,8 +763,9 @@ function updateActiveFilters() {
 }
 
 function uncheckChannel(label) {
-  document.querySelectorAll('.filter-chips input:checked').forEach(cb => {
-    if(cb.parentElement.querySelector('span:nth-child(3)').textContent === label) cb.checked = false;
+  document.querySelectorAll('.sb-ch-chip input:checked').forEach(cb => {
+    var lbl = cb.parentElement.textContent.trim();
+    if(lbl === label) cb.checked = false;
   });
   applyFilters();
 }
@@ -886,6 +891,85 @@ function closeDrawer() {
   document.getElementById('serviceDrawer').classList.remove('open');
   document.body.style.overflow = '';
   _drawerCurrentSeq = null;
+}
+
+// ── renderFeesArea: builds the fees pane HTML for the drawer ─────────────
+function renderFeesArea(typeId, seq) {
+  var fees = FEES_BY_ID[String(typeId)];
+  if (!fees || !fees.length) {
+    return '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:.82rem;">No fee data available for this service.</div>';
+  }
+
+  // Group fees by their condition field (or 'All' if empty)
+  var groups = {};
+  var groupOrder = [];
+  fees.forEach(function(f) {
+    var cond = (f.condition || 'All').trim() || 'All';
+    if (!groups[cond]) { groups[cond] = []; groupOrder.push(cond); }
+    groups[cond].push(f);
+  });
+
+  // Grand total
+  var grandTotal = fees.reduce(function(s, f) { return s + (parseFloat(f.amount) || 0); }, 0);
+
+  // Toggle button (outer expand/collapse)
+  var btnLabel = 'AED ' + grandTotal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
+  var html = '<button id="fb-' + seq + '" class="fees-toggle-btn" onclick="this.nextElementSibling.classList.toggle(\'open\');this.classList.toggle(\'open\')">'
+    + '<span>💰 Fee Schedule &nbsp;<span>Grand: AED ' + grandTotal.toFixed(2) + '</span></span>'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>'
+    + '</button>';
+
+  html += '<div class="fees-area open" id="fa-' + seq + '">';
+
+  groupOrder.forEach(function(cond) {
+    var rows = groups[cond];
+    var grpTotal = rows.reduce(function(s, f) { return s + (parseFloat(f.amount) || 0); }, 0);
+    var isAll = cond === 'All';
+    html += '<div class="grp">'
+      + '<div class="grp-hd ' + (isAll ? 'is-all' : 'is-other') + '" onclick="this.parentElement.classList.toggle(\'collapsed\')">'
+      + '  <div class="grp-title"><span class="grp-cond">' + escH(cond) + '</span></div>'
+      + '  <div class="grp-meta">'
+      + '    <span class="grp-count">' + rows.length + ' fee' + (rows.length > 1 ? 's' : '') + '</span>'
+      + '    <span class="grp-total">AED ' + grpTotal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span>'
+      + '    <svg class="grp-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6,9 12,15 18,9"/></svg>'
+      + '  </div>'
+      + '</div>'
+      + '<div class="grp-body"><div class="tbl-wrap"><table>'
+      + '<thead><tr><th>Description</th><th>Beneficiary</th><th>Mandatory</th><th>VAT</th><th>Refundable</th><th style="text-align:right">Amount (AED)</th></tr></thead>'
+      + '<tbody>';
+    rows.forEach(function(f) {
+      var amt = f.amount != null ? parseFloat(f.amount) : null;
+      var mandatory = f.mandatory && f.mandatory.toLowerCase() === 'yes'
+        ? '<span style="color:#92400e;font-weight:700;font-size:.65rem;">✓ Yes</span>'
+        : '<span style="color:#94a3b8;font-size:.65rem;">— No</span>';
+      var vat = f.isVAT ? '<span style="color:#1d4ed8;font-size:.65rem;font-weight:700;">+VAT</span>' : '—';
+      var refund = f.refundable
+        ? (f.refundable.toLowerCase() === 'yes' ? '<span style="color:#15803d;font-size:.65rem;font-weight:700;">Yes</span>'
+          : f.refundable.toLowerCase() === 'no' ? '<span style="color:#b91c1c;font-size:.65rem;">No</span>'
+          : '<span style="color:#94a3b8;font-size:.65rem;">' + escH(f.refundable) + '</span>')
+        : '—';
+      var desc = escH(f.desc_en || '');
+      var descAr = f.desc_ar ? '<div style="font-size:.62rem;color:#94a3b8;direction:rtl;text-align:right;">' + escH(f.desc_ar) + '</div>' : '';
+      html += '<tr>'
+        + '<td>' + desc + descAr + '</td>'
+        + '<td>' + escH(f.ben || '—') + '</td>'
+        + '<td>' + mandatory + '</td>'
+        + '<td>' + vat + '</td>'
+        + '<td>' + refund + '</td>'
+        + '<td style="text-align:right;"><span class="f-amount">'
+        + (amt != null ? amt.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—')
+        + '</span></td>'
+        + '</tr>';
+    });
+    html += '</tbody></table></div></div></div>';
+  });
+
+  html += '</div>'; // end fees-area
+  return html;
+}
+
+function escH(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function renderBRContent(typeId){

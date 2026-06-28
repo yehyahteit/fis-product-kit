@@ -533,18 +533,27 @@ var BR_RULES = {};
 // ── FEES DATA: full rows per App Type ID (same source as Fees Explorer) ──
 // FEES_BY_ID loaded from Supabase
 
+const CAT_COLORS = {
+  'Outpass':'cat-outpass','Outpass + Lift Temp Closure':'cat-outpass-lift',
+  'Cancellation':'cat-cancellation','Temporary Closure':'cat-temp',
+  'Permanent Closure':'cat-perm','Deportation Order':'cat-deportation',
+  'Violation':'cat-violation','Ban Management':'cat-ban',
+  'Reports':'cat-reports','Family Hold':'cat-family'
+};
+
 let currentView = 'cards';
 let currentSort = 'seq';
 let sortDir = {};
 
 
+function chVal(v){ return v===true || v==='Yes'; }
 function getChannels(s) {
   const ch = [];
-  if(s['Channel - Counter']==='Yes') ch.push({key:'counter',label:'Counter',cls:'ch-counter'});
-  if(s['Channel - SC - Indi']==='Yes') ch.push({key:'indi',label:'SC – Indiv.',cls:'ch-indi'});
-  if(s['Channel - SC - Est']==='Yes') ch.push({key:'est',label:'SC – Est.',cls:'ch-est'});
-  if(s['Channel - SC - Typing Ctr']==='Yes') ch.push({key:'typing',label:'Typing Ctr',cls:'ch-typing'});
-  if(s['Channel - MoHRE']==='Yes') ch.push({key:'mohre',label:'MoHRE',cls:'ch-mohre'});
+  if(chVal(s['Channel - Counter'])) ch.push({key:'counter',label:'Counter',cls:'ch-counter'});
+  if(chVal(s['Channel - SC - Indi'])) ch.push({key:'indi',label:'SC – Indiv.',cls:'ch-indi'});
+  if(chVal(s['Channel - SC - Est'])) ch.push({key:'est',label:'SC – Est.',cls:'ch-est'});
+  if(chVal(s['Channel - SC - Typing Ctr'])) ch.push({key:'typing',label:'Typing Ctr',cls:'ch-typing'});
+  if(chVal(s['Channel - MoHRE'])) ch.push({key:'mohre',label:'MoHRE',cls:'ch-mohre'});
   return ch;
 }
 
@@ -554,7 +563,7 @@ function channelTags(s, compact=false) {
     {key:'est',label:compact?'Est.':'SC – Est.',cls:'ch-est',val:s['Channel - SC - Est']},
     {key:'typing',label:compact?'Typing':'Typing Ctr',cls:'ch-typing',val:s['Channel - SC - Typing Ctr']},
     {key:'mohre',label:'MoHRE',cls:'ch-mohre',val:s['Channel - MoHRE']}];
-  return channels.map(c => `<span class="ch-tag ${c.val==='Yes'?c.cls:'ch-na'}">${c.label}</span>`).join('');
+  return channels.map(c => `<span class="ch-tag ${chVal(c.val)?c.cls:'ch-na'}">${c.label}</span>`).join('');
 }
 
 function renderCard(s) {
@@ -722,7 +731,7 @@ function getFiltered() {
     if(cat && s['Product Category'] !== cat) return false;
     if(appType && s['Application Type'] !== appType) return false;
     // Show service if it supports AT LEAST ONE of the checked channels
-    if(checkedChannels.length && !checkedChannels.some(ch => s[chMap[ch]]==='Yes')) return false;
+    if(checkedChannels.length && !checkedChannels.some(ch => chVal(s[chMap[ch]]))) return false;
     // Asset filter
     if(checkedAssets.includes('fees')) {
       const tid = String(s['Application Type Id']);

@@ -61,8 +61,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .est-chip{background:var(--ch-est-bg);color:var(--ch-est);border-color:#86efac;}
 .typing-chip{background:var(--ch-typing-bg);color:var(--ch-typing);border-color:#f9a8d4;}
 .mohre-chip{background:var(--ch-mohre-bg);color:var(--ch-mohre);border-color:#67e8f9;}
-.sb-ch-chip:has(input:not(:checked)){opacity:.35;filter:grayscale(.6);}
-.sb-ch-chip:has(input:not(:checked)):hover{opacity:.6;filter:grayscale(.2);}
+.sb-ch-chip.inactive{opacity:.3;filter:grayscale(.7);}
+.sb-ch-chip.inactive:hover{opacity:.65;filter:grayscale(.2);}
+.ch-filter-btn{font-family:inherit;}
 /* Reset button */
 .filter-reset-btn{
   margin-left:auto;display:inline-flex;align-items:center;gap:5px;
@@ -485,14 +486,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <!-- Channel filter chips -->
   <div class="filter-bar">
     <span class="filter-bar-label">Channel</span>
-    <label class="sb-ch-chip counter-chip"><input type="checkbox" value="counter" checked onchange="applyFilters();updateResetBtn()"/>Counter</label>
-    <label class="sb-ch-chip indi-chip"><input type="checkbox" value="indi" checked onchange="applyFilters();updateResetBtn()"/>SC – Individual</label>
-    <label class="sb-ch-chip est-chip"><input type="checkbox" value="est" checked onchange="applyFilters();updateResetBtn()"/>SC – Establishment</label>
-    <label class="sb-ch-chip typing-chip"><input type="checkbox" value="typing" checked onchange="applyFilters();updateResetBtn()"/>SC – Typing Center</label>
-    <label class="sb-ch-chip mohre-chip"><input type="checkbox" value="mohre" checked onchange="applyFilters();updateResetBtn()"/>MoHRE</label>
+    <button class="sb-ch-chip counter-chip ch-filter-btn" data-ch="counter" onclick="toggleChFilter(this)">Counter</button>
+    <button class="sb-ch-chip indi-chip ch-filter-btn" data-ch="indi" onclick="toggleChFilter(this)">SC – Individual</button>
+    <button class="sb-ch-chip est-chip ch-filter-btn" data-ch="est" onclick="toggleChFilter(this)">SC – Establishment</button>
+    <button class="sb-ch-chip typing-chip ch-filter-btn" data-ch="typing" onclick="toggleChFilter(this)">SC – Typing Center</button>
+    <button class="sb-ch-chip mohre-chip ch-filter-btn" data-ch="mohre" onclick="toggleChFilter(this)">MoHRE</button>
     <button class="filter-reset-btn hidden" id="filterResetBtn" onclick="resetChannelFilter()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-      Reset Filter
+      Reset
     </button>
   </div>
 </div>
@@ -819,7 +820,7 @@ function getFiltered() {
   const q = document.getElementById('searchInput').value.trim();
   const appType = taSelectedValue;
   const chMap = {counter:'Channel - Counter',indi:'Channel - SC - Indi',est:'Channel - SC - Est',typing:'Channel - SC - Typing Ctr',mohre:'Channel - MoHRE'};
-  const checkedChannels = [...document.querySelectorAll('.sb-ch-chip input:checked')].map(c=>c.value);
+  const checkedChannels = [...document.querySelectorAll('.ch-filter-btn:not(.inactive)')].map(b=>b.dataset.ch);
 
   return SERVICES.filter(s => {
     if(appType && s['Application Type'] !== appType) return false;
@@ -891,10 +892,8 @@ function updateActiveFilters() {
 }
 
 function uncheckChannel(label) {
-  document.querySelectorAll('.sb-ch-chip input:checked').forEach(cb => {
-    var lbl = cb.parentElement.textContent.trim();
-    if(lbl === label) cb.checked = false;
-  });
+  // legacy — now handled by toggleChFilter; kept to avoid reference errors
+  void label;
   applyFilters();
 }
 
@@ -911,22 +910,44 @@ function clearSearch() {
 
 function resetAll(){
   document.getElementById('searchInput').value='';
-  document.getElementById('searchClear').style.display='none';
+  const sc = document.getElementById('searchClear');
+  if(sc) sc.classList.remove('visible');
   taChipId = null;
   taClear();
   resetChannelFilter();
 }
 
+// activeChFilter: null = show all, string = show only that channel
+let activeChFilter = null;
+
+function toggleChFilter(btn) {
+  const ch = btn.dataset.ch;
+  if(activeChFilter === ch) {
+    // clicking active filter → deselect (show all)
+    activeChFilter = null;
+  } else {
+    activeChFilter = ch;
+  }
+  updateChFilterUI();
+  applyFilters();
+}
+
+function updateChFilterUI() {
+  document.querySelectorAll('.ch-filter-btn').forEach(b => {
+    b.classList.toggle('inactive', activeChFilter !== null && b.dataset.ch !== activeChFilter);
+  });
+  const btn = document.getElementById('filterResetBtn');
+  if(btn) btn.classList.toggle('hidden', activeChFilter === null);
+}
+
 function resetChannelFilter(){
-  document.querySelectorAll('.sb-ch-chip input').forEach(cb => cb.checked = true);
-  updateResetBtn();
+  activeChFilter = null;
+  updateChFilterUI();
   applyFilters();
 }
 
 function updateResetBtn(){
-  const allChecked = [...document.querySelectorAll('.sb-ch-chip input')].every(cb => cb.checked);
-  const btn = document.getElementById('filterResetBtn');
-  if(btn) btn.classList.toggle('hidden', allChecked);
+  // kept for compatibility — handled by updateChFilterUI now
 }
 function setView(v) {
   currentView = v;

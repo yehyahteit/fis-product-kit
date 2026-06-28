@@ -10,8 +10,9 @@
 })();
 </script>
 <meta charset="UTF-8"/>
+<link rel="icon" type="image/svg+xml" href="favicon.svg"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin — FIS Product Kit</title>
+<title>Admin — FIS Product Kit | Emaratech</title>
 <style>
 :root{
   --primary:#1a56db;--primary-dark:#1e3a8a;--primary-light:#eff6ff;
@@ -165,6 +166,17 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Ro
 <nav class="mega-menu">
   <div class="mm-brand">
     <span class="mm-logo">FIS</span>
+        <svg viewBox="0 0 320 56" xmlns="http://www.w3.org/2000/svg" style="height:20px;width:auto;flex-shrink:0;" aria-label="emaratech">
+          <text x="0" y="42" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="40" font-weight="300" letter-spacing="2" fill="rgba(255,255,255,0.92)">emaratech</text>
+          <g fill="#2dd4bf">
+            <path d="M236,4  l2.8,7  7,2.8  -7,2.8  -2.8,7  -2.8,-7  -7,-2.8  7,-2.8Z"/>
+            <path d="M254,0  l3.5,8.5 8.5,3.5 -8.5,3.5 -3.5,8.5 -3.5,-8.5 -8.5,-3.5 8.5,-3.5Z"/>
+            <path d="M272,4  l2.8,7  7,2.8  -7,2.8  -2.8,7  -2.8,-7  -7,-2.8  7,-2.8Z"/>
+            <path d="M236,30 l2.8,7  7,2.8  -7,2.8  -2.8,7  -2.8,-7  -7,-2.8  7,-2.8Z"/>
+            <path d="M254,26 l3.5,8.5 8.5,3.5 -8.5,3.5 -3.5,8.5 -3.5,-8.5 -8.5,-3.5 8.5,-3.5Z"/>
+            <path d="M272,30 l2.8,7  7,2.8  -7,2.8  -2.8,7  -2.8,-7  -7,-2.8  7,-2.8Z"/>
+          </g>
+        </svg>
     <div style="display:flex;flex-direction:column;gap:1px;">
       <div class="mm-breadcrumb">
         <a href="home.html">🏠 Home</a>
@@ -362,7 +374,7 @@ const SCHEMA = {
     sheet: 'FIS_Fees',
     required: ['Application type id','VC Fee ID','Fee Decription (EN)','Fee Decription (AR)',
                'Mandatory?','Collectable Amount','Is refundable?','IsVAT',
-               'GRP_FULL_ACC_NO','Fee Condition','BENIFICIARY']
+               'GRP_FULL_ACC_NO','Fee Condition','BENIFICIARY','Condition Channel/Counter']
   },
   rules: {
     sheet: 'Business Rules',
@@ -592,11 +604,11 @@ function buildDiff(name) {
   } else if (name === 'fees') {
     // Key: vc_id (VC Fee ID)
     const dbMap = {};
-    db.forEach(r => { dbMap[String(r.vc_id)] = r; });
+    db.forEach(r => { dbMap[String(r.vc_id||'')] = r; });
     const fileKeys = new Set();
 
     rows.forEach(row => {
-      const key = String(row['VC Fee ID']);
+      const key = String(row['VC Fee ID']||'');
       fileKeys.add(key);
       const existing = dbMap[key];
       let status;
@@ -619,7 +631,7 @@ function buildDiff(name) {
     });
 
     db.forEach(r => {
-      if (!fileKeys.has(String(r.vc_id))) {
+      if (!fileKeys.has(String(r.vc_id||''))) {
         removed++;
         const tr = document.createElement('tr');
         tr.className = 'row-removed';
@@ -631,13 +643,13 @@ function buildDiff(name) {
     });
 
   } else if (name === 'rules') {
-    // Key: app_type_id + channel_id + rule_id composite
+    // Key: app_type_id + channel_id + rule_id composite — all cast to string
     const dbMap = {};
-    db.forEach(r => { dbMap[`${r.app_type_id}|${r.channel_id}|${r.rule_id}`] = r; });
+    db.forEach(r => { dbMap[`${String(r.app_type_id)}|${String(r.channel_id)}|${String(r.rule_id)}`] = r; });
     const fileKeys = new Set();
 
     rows.forEach(row => {
-      const key = `${row['App Type ID']}|${row['Channel ID']}|${row['Rule Id']}`;
+      const key = `${String(row['App Type ID'])}|${String(row['Channel ID'])}|${String(row['Rule Id'])}`;
       fileKeys.add(key);
       const existing = dbMap[key];
       let status;
@@ -660,7 +672,7 @@ function buildDiff(name) {
     });
 
     db.forEach(r => {
-      const key = `${r.app_type_id}|${r.channel_id}|${r.rule_id}`;
+      const key = `${String(r.app_type_id)}|${String(r.channel_id)}|${String(r.rule_id)}`;
       if (!fileKeys.has(key)) {
         removed++;
         const tr = document.createElement('tr');
@@ -742,7 +754,8 @@ async function syncTable(name) {
         refundable: String(r['Is refundable?']||''),
         acc:        String(r['GRP_FULL_ACC_NO']||''),
         vc_id:      Number(r['VC Fee ID'])||null,
-        condition:  String(r['Fee Condition']||'')
+        condition:  String(r['Fee Condition']||''),
+        ch_type:    String(r['Condition Channel/Counter']||'')
       }));
       await sbReq('DELETE', `${SUPABASE_URL}/rest/v1/${tbl}?id=gte.0`, null);
       await sbReq('POST', `${SUPABASE_URL}/rest/v1/${tbl}`, payload);

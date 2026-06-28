@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+(function(){
+  if(localStorage.getItem('fis_kit_auth')!=='1'){
+    document.documentElement.style.visibility='hidden';
+    window.location.replace('login.html');
+  }
+})();
+</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — FIS Product Kit</title>
+<style>
+:root{
+  --primary:#1a56db;--primary-dark:#1e3a8a;--primary-light:#eff6ff;
+  --bg:#f1f5f9;--surface:#fff;--border:#e2e8f0;
+  --text:#0f172a;--muted:#64748b;--radius:14px;
+  --success:#15803d;--success-bg:#dcfce7;--success-border:#bbf7d0;
+  --error:#dc2626;--error-bg:#fee2e2;--error-border:#fecaca;
+  --warn:#92400e;--warn-bg:#fef3c7;--warn-border:#fde68a;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);}
+
+/* ── NAV ── */
+.mega-menu{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(135deg,#0c2461,#1a56db);
+  padding:0 28px;height:56px;flex-shrink:0;gap:16px;
+  box-shadow:0 2px 12px rgba(0,0,0,.18);position:sticky;top:0;z-index:100;
+}
+.mm-brand{display:flex;align-items:center;gap:12px;}
+.mm-logo{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:4px 10px;font-size:.85rem;font-weight:800;color:#fff;letter-spacing:.05em;}
+.mm-breadcrumb{display:flex;align-items:center;gap:6px;font-size:.75rem;color:rgba(255,255,255,.6);}
+.mm-breadcrumb a{color:rgba(255,255,255,.7);text-decoration:none;transition:color .15s;}
+.mm-breadcrumb a:hover{color:#fff;}
+.bc-sep{color:rgba(255,255,255,.3);}
+.bc-cur{color:#fff;font-weight:600;}
+.mm-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:.65rem;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.06em;}
+.mm-actions{display:flex;align-items:center;gap:10px;}
+.mm-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;text-decoration:none;transition:all .15s;}
+.mm-back{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);}
+.mm-back:hover{background:rgba(255,255,255,.22);}
+.mm-exit{background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.3);}
+.mm-exit:hover{background:rgba(239,68,68,.4);color:#fff;}
+.mm-sep{width:1px;height:20px;background:rgba(255,255,255,.15);}
+
+/* ── LAYOUT ── */
+.page-wrap{max-width:960px;margin:0 auto;padding:32px 24px 60px;}
+
+/* ── SECTION TABS ── */
+.tab-bar{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:5px;margin-bottom:28px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.tab-btn{flex:1;padding:9px 12px;border:none;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--muted);background:transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,.3);}
+.tab-btn:not(.active):hover{background:var(--bg);color:var(--text);}
+
+/* ── UPLOAD CARD ── */
+.upload-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.upload-card-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.upload-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.upload-card-title{font-size:1rem;font-weight:800;color:var(--text);}
+.upload-card-subtitle{font-size:.75rem;color:var(--muted);margin-top:2px;}
+.upload-card-body{padding:24px;}
+
+/* ── DROP ZONE ── */
+.drop-zone{
+  border:2px dashed var(--border);border-radius:12px;
+  padding:36px 24px;text-align:center;cursor:pointer;
+  transition:all .2s;background:#fafbff;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--primary);background:var(--primary-light);}
+.drop-zone-icon{font-size:2rem;line-height:1;}
+.drop-zone-text{font-size:.85rem;font-weight:600;color:var(--text);}
+.drop-zone-hint{font-size:.72rem;color:var(--muted);}
+.drop-zone input[type=file]{display:none;}
+.file-selected{display:none;align-items:center;gap:10px;background:var(--primary-light);border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-top:12px;}
+.file-selected.visible{display:flex;}
+.file-selected-name{font-size:.8rem;font-weight:600;color:var(--primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-clear-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1rem;padding:0 2px;line-height:1;}
+
+/* ── VALIDATION PANEL ── */
+.validation-panel{margin-top:16px;display:none;}
+.validation-panel.visible{display:block;}
+.val-section{margin-bottom:12px;}
+.val-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;}
+.val-item{display:flex;align-items:flex-start;gap:8px;font-size:.78rem;padding:5px 0;border-bottom:1px solid #f1f5f9;}
+.val-item:last-child{border-bottom:none;}
+.val-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.val-dot.ok{background:#22c55e;}
+.val-dot.warn{background:#f59e0b;}
+.val-dot.err{background:#ef4444;}
+
+/* ── DIFF TABLE ── */
+.diff-wrap{margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden;display:none;}
+.diff-wrap.visible{display:block;}
+.diff-table{width:100%;border-collapse:collapse;font-size:.74rem;}
+.diff-table th{background:#f8fafc;padding:8px 12px;font-size:.67rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;border-bottom:1.5px solid var(--border);}
+.diff-table td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:top;}
+.diff-table tr:last-child td{border-bottom:none;}
+.diff-table tr.row-added td{background:#f0fdf4;}
+.diff-table tr.row-removed td{background:#fff1f2;text-decoration:line-through;opacity:.7;}
+.diff-table tr.row-updated td{background:#fffbeb;}
+.diff-badge{display:inline-block;font-size:.6rem;font-weight:800;padding:1px 7px;border-radius:20px;text-transform:uppercase;}
+.diff-badge.added{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
+.diff-badge.removed{background:var(--error-bg);color:var(--error);border:1px solid var(--error-border);}
+.diff-badge.updated{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.diff-badge.unchanged{background:#f1f5f9;color:#94a3b8;}
+
+/* ── SUMMARY BAR ── */
+.summary-bar{display:none;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;margin-top:16px;}
+.summary-bar.visible{display:flex;}
+.sum-stat{display:flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;}
+.sum-dot{width:8px;height:8px;border-radius:50%;}
+.sum-dot.added{background:#22c55e;}
+.sum-dot.removed{background:#ef4444;}
+.sum-dot.updated{background:#f59e0b;}
+.sum-dot.same{background:#94a3b8;}
+.sum-sep{width:1px;height:16px;background:var(--border);}
+
+/* ── ACTION BUTTONS ── */
+.action-row{display:flex;align-items:center;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:9px;font-size:.8rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,.25);}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{background:var(--bg);color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--border);color:var(--text);}
+.btn-danger{background:#fee2e2;color:#dc2626;border:1px solid #fecaca;}
+.btn-danger:hover{background:#fecaca;}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:28px;right:28px;display:flex;flex-direction:column;gap:8px;z-index:9999;}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:10px;font-size:.8rem;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);animation:slideIn .2s ease;min-width:260px;}
+.toast.success{background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);}
+.toast.error{background:var(--error-bg);color:var(--error);border:1px solid var(--error-border);}
+.toast.info{background:var(--primary-light);color:var(--primary);border:1px solid #bfdbfe;}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── SPINNER ── */
+.spinner{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── PROGRESS ── */
+.progress-bar-wrap{height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-top:12px;display:none;}
+.progress-bar-wrap.visible{display:block;}
+.progress-bar{height:100%;background:var(--primary);border-radius:2px;transition:width .3s;}
+
+/* ── COLUMN MISMATCH ── */
+.col-mismatch-box{background:var(--error-bg);border:1px solid var(--error-border);border-radius:10px;padding:14px 16px;font-size:.78rem;color:var(--error);display:none;margin-top:12px;}
+.col-mismatch-box.visible{display:block;}
+
+/* ── INFO BOX ── */
+.info-box{background:var(--primary-light);border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;font-size:.75rem;color:#1e40af;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start;}
+.info-box svg{flex-shrink:0;margin-top:1px;}
+
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="mega-menu">
+  <div class="mm-brand">
+    <span class="mm-logo">FIS</span>
+    <div style="display:flex;flex-direction:column;gap:1px;">
+      <div class="mm-breadcrumb">
+        <a href="home.html">🏠 Home</a>
+        <span class="bc-sep">›</span>
+        <span class="bc-cur">Data Admin</span>
+      </div>
+    </div>
+    <span class="mm-badge" id="mmBadge">Upload & Sync</span>
+  </div>
+  <div class="mm-actions">
+    <a href="home.html" class="mm-btn mm-back">← Back</a>
+    <div class="mm-sep"></div>
+    <button class="mm-btn mm-exit" onclick="signOut()">Sign Out</button>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div style="overflow-y:auto;flex:1;">
+<div class="page-wrap">
+
+  <div class="info-box">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+    <div>Upload the original Excel files. The system validates the column structure, shows you exactly what changed (added / updated / removed rows), and lets you confirm before syncing to the database. <strong>New columns are rejected automatically.</strong></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('services',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      Services
+    </button>
+    <button class="tab-btn" onclick="switchTab('fees',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Fees
+    </button>
+    <button class="tab-btn" onclick="switchTab('rules',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Business Rules
+    </button>
+  </div>
+
+  <!-- ═══ SERVICES PANEL ═══ -->
+  <div id="panel-services" class="upload-card">
+    <div class="upload-card-header">
+      <div class="upload-card-icon" style="background:#eff6ff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      </div>
+      <div>
+        <div class="upload-card-title">Services List</div>
+        <div class="upload-card-subtitle">Expected columns: Seq, Product Category, Application Type Id, Application Type, Sub Type, Channel - Counter, Channel - SC - Indi, Channel - SC - Est, Channel - SC - Typing Ctr, Channel - MoHRE</div>
+      </div>
+    </div>
+    <div class="upload-card-body">
+      <div class="drop-zone" id="dz-services" onclick="document.getElementById('fi-services').click()" ondragover="dzDragOver(event,'services')" ondragleave="dzDragLeave('services')" ondrop="dzDrop(event,'services')">
+        <input type="file" id="fi-services" accept=".xlsx,.xls" onchange="handleFile('services',this)"/>
+        <div class="drop-zone-icon">📂</div>
+        <div class="drop-zone-text">Click to browse or drag & drop</div>
+        <div class="drop-zone-hint">Excel (.xlsx) — Services List format only</div>
+      </div>
+      <div class="file-selected" id="fs-services">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a56db" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        <span class="file-selected-name" id="fn-services">—</span>
+        <button class="file-clear-btn" onclick="clearFile('services')">✕</button>
+      </div>
+      <div class="col-mismatch-box" id="cm-services"></div>
+      <div class="progress-bar-wrap" id="pb-services"><div class="progress-bar" id="pbv-services" style="width:0%"></div></div>
+      <div class="summary-bar" id="sb-services"></div>
+      <div class="diff-wrap" id="dw-services">
+        <table class="diff-table" id="dt-services">
+          <thead><tr><th>Status</th><th>Seq</th><th>App Type ID</th><th>Application Type</th><th>Category</th><th>Channels</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="action-row" id="ar-services" style="display:none;">
+        <button class="btn btn-primary" id="sync-services" onclick="syncTable('services')" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Sync to Database
+        </button>
+        <button class="btn btn-ghost" onclick="clearFile('services')">Cancel</button>
+        <span id="sync-status-services" style="font-size:.75rem;color:var(--muted);"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FEES PANEL ═══ -->
+  <div id="panel-fees" class="upload-card hidden">
+    <div class="upload-card-header">
+      <div class="upload-card-icon" style="background:#f0fdf4;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div>
+        <div class="upload-card-title">Fees</div>
+        <div class="upload-card-subtitle">Sheet: FIS_Fees — Expected columns: Application type id, VC Fee ID, Fee Decription (EN), Fee Decription (AR), Mandatory?, Collectable Amount, Is refundable?, IsVAT, GRP_FULL_ACC_NO, Fee Condition, BENIFICIARY</div>
+      </div>
+    </div>
+    <div class="upload-card-body">
+      <div class="drop-zone" id="dz-fees" onclick="document.getElementById('fi-fees').click()" ondragover="dzDragOver(event,'fees')" ondragleave="dzDragLeave('fees')" ondrop="dzDrop(event,'fees')">
+        <input type="file" id="fi-fees" accept=".xlsx,.xls" onchange="handleFile('fees',this)"/>
+        <div class="drop-zone-icon">📂</div>
+        <div class="drop-zone-text">Click to browse or drag & drop</div>
+        <div class="drop-zone-hint">Excel (.xlsx) — FIS_Fees sheet required</div>
+      </div>
+      <div class="file-selected" id="fs-fees">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        <span class="file-selected-name" id="fn-fees">—</span>
+        <button class="file-clear-btn" onclick="clearFile('fees')">✕</button>
+      </div>
+      <div class="col-mismatch-box" id="cm-fees"></div>
+      <div class="progress-bar-wrap" id="pb-fees"><div class="progress-bar" id="pbv-fees" style="width:0%"></div></div>
+      <div class="summary-bar" id="sb-fees"></div>
+      <div class="diff-wrap" id="dw-fees">
+        <table class="diff-table" id="dt-fees">
+          <thead><tr><th>Status</th><th>App Type ID</th><th>VC Fee ID</th><th>Description (EN)</th><th>Amount</th><th>Mandatory</th><th>Condition</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="action-row" id="ar-fees" style="display:none;">
+        <button class="btn btn-primary" id="sync-fees" onclick="syncTable('fees')" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Sync to Database
+        </button>
+        <button class="btn btn-ghost" onclick="clearFile('fees')">Cancel</button>
+        <span id="sync-status-fees" style="font-size:.75rem;color:var(--muted);"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RULES PANEL ═══ -->
+  <div id="panel-rules" class="upload-card hidden">
+    <div class="upload-card-header">
+      <div class="upload-card-icon" style="background:#fdf4ff;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div>
+        <div class="upload-card-title">Business Rules</div>
+        <div class="upload-card-subtitle">Sheet: Business Rules — Expected columns: App Type ID, Channel ID, Channel Name, Rule classification, Rule Id, Rule Name, Rule package, Precondition, Pass Condition, Fail/Pass Messages</div>
+      </div>
+    </div>
+    <div class="upload-card-body">
+      <div class="drop-zone" id="dz-rules" onclick="document.getElementById('fi-rules').click()" ondragover="dzDragOver(event,'rules')" ondragleave="dzDragLeave('rules')" ondrop="dzDrop(event,'rules')">
+        <input type="file" id="fi-rules" accept=".xlsx,.xls" onchange="handleFile('rules',this)"/>
+        <div class="drop-zone-icon">📂</div>
+        <div class="drop-zone-text">Click to browse or drag & drop</div>
+        <div class="drop-zone-hint">Excel (.xlsx) — Business Rules sheet required</div>
+      </div>
+      <div class="file-selected" id="fs-rules">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        <span class="file-selected-name" id="fn-rules">—</span>
+        <button class="file-clear-btn" onclick="clearFile('rules')">✕</button>
+      </div>
+      <div class="col-mismatch-box" id="cm-rules"></div>
+      <div class="progress-bar-wrap" id="pb-rules"><div class="progress-bar" id="pbv-rules" style="width:0%"></div></div>
+      <div class="summary-bar" id="sb-rules"></div>
+      <div class="diff-wrap" id="dw-rules">
+        <table class="diff-table" id="dt-rules">
+          <thead><tr><th>Status</th><th>App Type ID</th><th>Channel</th><th>Rule ID</th><th>Rule Name</th><th>Classification</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="action-row" id="ar-rules" style="display:none;">
+        <button class="btn btn-primary" id="sync-rules" onclick="syncTable('rules')" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="17,1 21,5 17,9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7,23 3,19 7,15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Sync to Database
+        </button>
+        <button class="btn btn-ghost" onclick="clearFile('rules')">Cancel</button>
+        <span id="sync-status-rules" style="font-size:.75rem;color:var(--muted);"></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- SheetJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ══════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://xzmpqqsboqxqhfzwfhgm.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bXBxcXNib3F4cWhmendmaGdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA5MTg0MDIsImV4cCI6MjA2NjQ5NDQwMn0.z-PFlMVBMy4r5aVGvwkLLZNMDLJhADSvJLXUGBm3hDk';
+
+// Expected columns per table (STRICT — extras rejected)
+const SCHEMA = {
+  services: {
+    sheet: null, // first sheet
+    required: ['Seq','Product Category','Application Type Id','Application Type','Sub Type',
+                'Channel - Counter','Channel - SC - Indi','Channel - SC - Est',
+                'Channel - SC - Typing Ctr','Channel - MoHRE']
+  },
+  fees: {
+    sheet: 'FIS_Fees',
+    required: ['Application type id','VC Fee ID','Fee Decription (EN)','Fee Decription (AR)',
+               'Mandatory?','Collectable Amount','Is refundable?','IsVAT',
+               'GRP_FULL_ACC_NO','Fee Condition','BENIFICIARY']
+  },
+  rules: {
+    sheet: 'Business Rules',
+    required: ['App Type ID','App Type English Name','App Type Arabic Name',
+               'App Sub Type Id','App Sub Type English Name','App Sub Type Arabic Name',
+               'Channel ID','Channel Name','Rule classification','Rule Id','Rule Name',
+               'Rule package','Precondition','Pass Condition',
+               'Fail Message in English','Fail Message in Arabic',
+               'Pass Message in English','Pass Message in Arabic']
+  }
+};
+
+// Parsed data store
+const PARSED = { services: null, fees: null, rules: null };
+// Current DB snapshot per table
+const DB_SNAP = { services: null, fees: null, rules: null };
+
+// ══════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════
+function signOut() {
+  localStorage.removeItem('fis_kit_auth');
+  window.location.replace('login.html');
+}
+
+function switchTab(name, btn) {
+  ['services','fees','rules'].forEach(t => {
+    document.getElementById('panel-'+t).classList.toggle('hidden', t !== name);
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// DRAG & DROP
+// ══════════════════════════════════════════
+function dzDragOver(e, name) {
+  e.preventDefault();
+  document.getElementById('dz-'+name).classList.add('drag-over');
+}
+function dzDragLeave(name) {
+  document.getElementById('dz-'+name).classList.remove('drag-over');
+}
+function dzDrop(e, name) {
+  e.preventDefault();
+  dzDragLeave(name);
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(name, file);
+}
+function handleFile(name, input) {
+  if (input.files[0]) processFile(name, input.files[0]);
+}
+
+// ══════════════════════════════════════════
+// FILE PROCESSING
+// ══════════════════════════════════════════
+function processFile(name, file) {
+  if (!file.name.match(/\.xlsx?$/i)) { toast('Only Excel (.xlsx) files are accepted', 'error'); return; }
+
+  // Show filename
+  document.getElementById('fn-'+name).textContent = file.name;
+  document.getElementById('fs-'+name).classList.add('visible');
+  document.getElementById('cm-'+name).classList.remove('visible');
+  document.getElementById('dw-'+name).classList.remove('visible');
+  document.getElementById('sb-'+name).classList.remove('visible');
+  document.getElementById('ar-'+name).style.display = 'none';
+
+  setProgress(name, 10);
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      setProgress(name, 40);
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+
+      // Find sheet
+      const sheetName = SCHEMA[name].sheet
+        ? wb.SheetNames.find(s => s === SCHEMA[name].sheet)
+        : wb.SheetNames[0];
+
+      if (!sheetName) {
+        showColMismatch(name, `Sheet "${SCHEMA[name].sheet}" not found. Available: ${wb.SheetNames.join(', ')}`);
+        setProgress(name, 0); return;
+      }
+
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval: ''});
+
+      if (!rows.length) { showColMismatch(name, 'File is empty or has no data rows.'); setProgress(name, 0); return; }
+
+      // Column validation
+      const fileHeaders = Object.keys(rows[0]);
+      const required = SCHEMA[name].required;
+      const missing = required.filter(h => !fileHeaders.includes(h));
+      const extra   = fileHeaders.filter(h => !required.includes(h));
+
+      if (missing.length) {
+        showColMismatch(name, `Missing required columns: ${missing.join(', ')}`);
+        setProgress(name, 0); return;
+      }
+      if (extra.length) {
+        showColMismatch(name, `⛔ New/unknown columns detected and rejected: ${extra.join(', ')}. Only the expected columns are allowed.`);
+        setProgress(name, 0); return;
+      }
+
+      setProgress(name, 70);
+      PARSED[name] = rows;
+
+      // Load current DB data for diff
+      loadDBSnapshot(name).then(() => {
+        setProgress(name, 90);
+        buildDiff(name);
+        setProgress(name, 100);
+        setTimeout(() => setProgress(name, 0), 600);
+      });
+
+    } catch(err) {
+      showColMismatch(name, 'Failed to read file: ' + err.message);
+      setProgress(name, 0);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function clearFile(name) {
+  document.getElementById('fi-'+name).value = '';
+  document.getElementById('fs-'+name).classList.remove('visible');
+  document.getElementById('fn-'+name).textContent = '—';
+  document.getElementById('cm-'+name).classList.remove('visible');
+  document.getElementById('dw-'+name).classList.remove('visible');
+  document.getElementById('sb-'+name).classList.remove('visible');
+  document.getElementById('ar-'+name).style.display = 'none';
+  PARSED[name] = null;
+}
+
+function setProgress(name, pct) {
+  const wrap = document.getElementById('pb-'+name);
+  const bar  = document.getElementById('pbv-'+name);
+  wrap.classList.toggle('visible', pct > 0 && pct < 100);
+  bar.style.width = pct + '%';
+}
+
+function showColMismatch(name, msg) {
+  const box = document.getElementById('cm-'+name);
+  box.textContent = '⚠️ ' + msg;
+  box.classList.add('visible');
+}
+
+// ══════════════════════════════════════════
+// DB SNAPSHOT
+// ══════════════════════════════════════════
+async function sbFetch(table) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}?select=*&limit=10000`;
+  const r = await fetch(url, {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+  if (!r.ok) throw new Error('Supabase error ' + r.status);
+  return r.json();
+}
+
+async function loadDBSnapshot(name) {
+  const tableMap = {services:'FIS_KIT_services', fees:'FIS_KIT_fees', rules:'FIS_KIT_business_rules'};
+  try {
+    DB_SNAP[name] = await sbFetch('"' + tableMap[name] + '"');
+  } catch(e) {
+    DB_SNAP[name] = [];
+  }
+}
+
+// ══════════════════════════════════════════
+// DIFF ENGINE
+// ══════════════════════════════════════════
+function buildDiff(name) {
+  const rows = PARSED[name];
+  const db   = DB_SNAP[name] || [];
+  let added=0, updated=0, removed=0, same=0;
+  const tbody = document.querySelector('#dt-'+name+' tbody');
+  tbody.innerHTML = '';
+
+  if (name === 'services') {
+    // Key: app_type_id (or seq for null IDs)
+    const dbMap = {};
+    db.forEach(r => { dbMap[String(r.app_type_id||r.seq)] = r; });
+    const fileKeys = new Set();
+
+    rows.forEach(row => {
+      const key = String(row['Application Type Id'] || row['Seq']);
+      fileKeys.add(key);
+      const existing = dbMap[key];
+      const chStr = r => [r.ch_counter,r.ch_indi,r.ch_est,r.ch_typing,r.ch_mohre].map(v=>v?'✓':'–').join(' ');
+      const newCh = [yn(row['Channel - Counter']),yn(row['Channel - SC - Indi']),yn(row['Channel - SC - Est']),yn(row['Channel - SC - Typing Ctr']),yn(row['Channel - MoHRE'])];
+      const newChStr = newCh.map(v=>v?'✓':'–').join(' ');
+
+      let status;
+      if (!existing) { status = 'added'; added++; }
+      else {
+        const changed = existing.app_type_en !== String(row['Application Type']||'') ||
+                        existing.product_category !== String(row['Product Category']||'') ||
+                        existing.ch_counter !== yn(row['Channel - Counter']) ||
+                        existing.ch_indi !== yn(row['Channel - SC - Indi']) ||
+                        existing.ch_est !== yn(row['Channel - SC - Est']) ||
+                        existing.ch_typing !== yn(row['Channel - SC - Typing Ctr']) ||
+                        existing.ch_mohre !== yn(row['Channel - MoHRE']);
+        if (changed) { status = 'updated'; updated++; } else { status = 'unchanged'; same++; }
+      }
+      const tr = document.createElement('tr');
+      tr.className = status === 'unchanged' ? '' : 'row-'+status;
+      tr.innerHTML = `<td><span class="diff-badge ${status}">${status}</span></td>
+        <td>${row['Seq']}</td><td>${row['Application Type Id']||'—'}</td>
+        <td>${row['Application Type']}</td><td>${row['Product Category']}</td>
+        <td style="font-family:monospace;font-size:.68rem;">${newChStr}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Removed rows
+    db.forEach(r => {
+      const key = String(r.app_type_id||r.seq);
+      if (!fileKeys.has(key)) {
+        removed++;
+        const tr = document.createElement('tr');
+        tr.className = 'row-removed';
+        tr.innerHTML = `<td><span class="diff-badge removed">removed</span></td>
+          <td>${r.seq}</td><td>${r.app_type_id||'—'}</td><td>${r.app_type_en}</td>
+          <td>${r.product_category}</td><td>—</td>`;
+        tbody.appendChild(tr);
+      }
+    });
+
+  } else if (name === 'fees') {
+    // Key: vc_id (VC Fee ID)
+    const dbMap = {};
+    db.forEach(r => { dbMap[String(r.vc_id)] = r; });
+    const fileKeys = new Set();
+
+    rows.forEach(row => {
+      const key = String(row['VC Fee ID']);
+      fileKeys.add(key);
+      const existing = dbMap[key];
+      let status;
+      if (!existing) { status = 'added'; added++; }
+      else {
+        const changed = String(existing.app_type_id) !== String(row['Application type id']) ||
+                        Number(existing.amount) !== Number(row['Collectable Amount']) ||
+                        existing.mandatory !== String(row['Mandatory?']||'') ||
+                        existing.condition !== String(row['Fee Condition']||'');
+        if (changed) { status = 'updated'; updated++; } else { status = 'unchanged'; same++; }
+      }
+      const tr = document.createElement('tr');
+      tr.className = status === 'unchanged' ? '' : 'row-'+status;
+      tr.innerHTML = `<td><span class="diff-badge ${status}">${status}</span></td>
+        <td>${row['Application type id']}</td><td>${row['VC Fee ID']}</td>
+        <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(String(row['Fee Decription (EN)']||''))}">${esc(String(row['Fee Decription (EN)']||'').substring(0,60))}</td>
+        <td>AED ${row['Collectable Amount']}</td>
+        <td>${row['Mandatory?']}</td><td>${row['Fee Condition']||'—'}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    db.forEach(r => {
+      if (!fileKeys.has(String(r.vc_id))) {
+        removed++;
+        const tr = document.createElement('tr');
+        tr.className = 'row-removed';
+        tr.innerHTML = `<td><span class="diff-badge removed">removed</span></td>
+          <td>${r.app_type_id}</td><td>${r.vc_id}</td><td>${esc(String(r.desc_en||'').substring(0,60))}</td>
+          <td>AED ${r.amount}</td><td>${r.mandatory||'—'}</td><td>—</td>`;
+        tbody.appendChild(tr);
+      }
+    });
+
+  } else if (name === 'rules') {
+    // Key: app_type_id + channel_id + rule_id composite
+    const dbMap = {};
+    db.forEach(r => { dbMap[`${r.app_type_id}|${r.channel_id}|${r.rule_id}`] = r; });
+    const fileKeys = new Set();
+
+    rows.forEach(row => {
+      const key = `${row['App Type ID']}|${row['Channel ID']}|${row['Rule Id']}`;
+      fileKeys.add(key);
+      const existing = dbMap[key];
+      let status;
+      if (!existing) { status = 'added'; added++; }
+      else {
+        const changed = existing.rule_name !== String(row['Rule Name']||'') ||
+                        existing.rule_classification !== String(row['Rule classification']||'') ||
+                        existing.precondition !== String(row['Precondition']||'') ||
+                        existing.pass_condition !== String(row['Pass Condition']||'');
+        if (changed) { status = 'updated'; updated++; } else { status = 'unchanged'; same++; }
+      }
+      const tr = document.createElement('tr');
+      tr.className = status === 'unchanged' ? '' : 'row-'+status;
+      tr.innerHTML = `<td><span class="diff-badge ${status}">${status}</span></td>
+        <td>${row['App Type ID']}</td><td>${esc(String(row['Channel Name']||''))}</td>
+        <td>${row['Rule Id']}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(String(row['Rule Name']||''))}</td>
+        <td>${esc(String(row['Rule classification']||''))}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    db.forEach(r => {
+      const key = `${r.app_type_id}|${r.channel_id}|${r.rule_id}`;
+      if (!fileKeys.has(key)) {
+        removed++;
+        const tr = document.createElement('tr');
+        tr.className = 'row-removed';
+        tr.innerHTML = `<td><span class="diff-badge removed">removed</span></td>
+          <td>${r.app_type_id}</td><td>${esc(String(r.channel_name||''))}</td>
+          <td>${r.rule_id}</td><td>${esc(String(r.rule_name||''))}</td><td>—</td>`;
+        tbody.appendChild(tr);
+      }
+    });
+  }
+
+  // Summary bar
+  const sb = document.getElementById('sb-'+name);
+  sb.innerHTML = `
+    <div class="sum-stat"><div class="sum-dot added"></div>${added} Added</div>
+    <div class="sum-sep"></div>
+    <div class="sum-stat"><div class="sum-dot updated"></div>${updated} Updated</div>
+    <div class="sum-sep"></div>
+    <div class="sum-stat"><div class="sum-dot removed"></div>${removed} Removed</div>
+    <div class="sum-sep"></div>
+    <div class="sum-stat"><div class="sum-dot same"></div>${same} Unchanged</div>
+  `;
+  sb.classList.add('visible');
+  document.getElementById('dw-'+name).classList.add('visible');
+  document.getElementById('ar-'+name).style.display = 'flex';
+  document.getElementById('sync-'+name).disabled = (added + updated + removed === 0);
+  if (added + updated + removed === 0) {
+    document.getElementById('sync-status-'+name).textContent = 'No changes detected — database is already up to date.';
+  } else {
+    document.getElementById('sync-status-'+name).textContent = '';
+  }
+}
+
+// ══════════════════════════════════════════
+// SYNC TO SUPABASE
+// ══════════════════════════════════════════
+async function syncTable(name) {
+  const btn = document.getElementById('sync-'+name);
+  const statusEl = document.getElementById('sync-status-'+name);
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Syncing…';
+
+  try {
+    const tableMap = {services:'FIS_KIT_services', fees:'FIS_KIT_fees', rules:'FIS_KIT_business_rules'};
+    const tbl = '"' + tableMap[name] + '"';
+    const rows = PARSED[name];
+
+    // Build upsert payload
+    let payload;
+    if (name === 'services') {
+      payload = rows.map(r => ({
+        seq: Number(r['Seq']) || null,
+        product_category: String(r['Product Category']||''),
+        app_type_id: r['Application Type Id'] ? String(r['Application Type Id']) : null,
+        app_type_en: String(r['Application Type']||''),
+        app_type_ar: '',
+        sub_type: String(r['Sub Type']||'').replace(/\t/g,' '),
+        description: '',
+        ch_counter: yn(r['Channel - Counter']),
+        ch_indi:    yn(r['Channel - SC - Indi']),
+        ch_est:     yn(r['Channel - SC - Est']),
+        ch_typing:  yn(r['Channel - SC - Typing Ctr']),
+        ch_mohre:   yn(r['Channel - MoHRE'])
+      }));
+      // DELETE all then INSERT (cleanest for this table)
+      await sbReq('DELETE', `${SUPABASE_URL}/rest/v1/${tbl}?seq=gte.0`, null);
+      await sbReq('POST', `${SUPABASE_URL}/rest/v1/${tbl}`, payload);
+
+    } else if (name === 'fees') {
+      payload = rows.map(r => ({
+        app_type_id: String(r['Application type id']||''),
+        desc_en:    String(r['Fee Decription (EN)']||'').replace(/^=.*$/,''),
+        desc_ar:    String(r['Fee Decription (AR)']||'').replace(/^=.*$/,''),
+        beneficiary: String(r['BENIFICIARY']||'').replace(/^=.*$/,''),
+        amount:     Number(r['Collectable Amount'])||0,
+        mandatory:  String(r['Mandatory?']||''),
+        is_vat:     String(r['IsVAT']||'').replace(/^=.*$/,'').toLowerCase()==='yes',
+        refundable: String(r['Is refundable?']||''),
+        acc:        String(r['GRP_FULL_ACC_NO']||''),
+        vc_id:      Number(r['VC Fee ID'])||null,
+        condition:  String(r['Fee Condition']||'')
+      }));
+      await sbReq('DELETE', `${SUPABASE_URL}/rest/v1/${tbl}?id=gte.0`, null);
+      await sbReq('POST', `${SUPABASE_URL}/rest/v1/${tbl}`, payload);
+
+    } else if (name === 'rules') {
+      payload = rows.map(r => ({
+        app_type_id:     String(r['App Type ID']||''),
+        app_type_en:     String(r['App Type English Name']||''),
+        app_type_ar:     String(r['App Type Arabic Name']||''),
+        app_sub_type_id: String(r['App Sub Type Id']||''),
+        app_sub_type_en: String(r['App Sub Type English Name']||''),
+        app_sub_type_ar: String(r['App Sub Type Arabic Name']||''),
+        channel_id:      String(r['Channel ID']||''),
+        channel_name:    String(r['Channel Name']||''),
+        rule_classification: String(r['Rule classification']||''),
+        rule_id:         String(r['Rule Id']||''),
+        rule_name:       String(r['Rule Name']||''),
+        rule_package:    String(r['Rule package']||''),
+        precondition:    String(r['Precondition']||''),
+        pass_condition:  String(r['Pass Condition']||''),
+        fail_msg_en:     String(r['Fail Message in English']||''),
+        fail_msg_ar:     String(r['Fail Message in Arabic']||''),
+        pass_msg_en:     String(r['Pass Message in English']||''),
+        pass_msg_ar:     String(r['Pass Message in Arabic']||'')
+      }));
+      await sbReq('DELETE', `${SUPABASE_URL}/rest/v1/${tbl}?id=gte.0`, null);
+      await sbReq('POST', `${SUPABASE_URL}/rest/v1/${tbl}`, payload);
+    }
+
+    toast(`✓ ${name.charAt(0).toUpperCase()+name.slice(1)} synced successfully — ${payload.length} rows written`, 'success');
+    statusEl.textContent = `Last synced: ${new Date().toLocaleTimeString()} — ${payload.length} rows`;
+    btn.innerHTML = '✓ Synced';
+    btn.style.background = '#15803d';
+
+    // Refresh snapshot
+    await loadDBSnapshot(name);
+
+  } catch(err) {
+    toast('Sync failed: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = 'Sync to Database';
+  }
+}
+
+async function sbReq(method, url, body) {
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (!r.ok) {
+    const txt = await r.text();
+    throw new Error(`HTTP ${r.status}: ${txt.substring(0,200)}`);
+  }
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function yn(v) { return v === true || String(v).trim().toLowerCase() === 'yes'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function toast(msg, type='info') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `<span style="flex:1">${msg}</span>`;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+</script>
+</body>
+</html>

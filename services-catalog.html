@@ -1287,15 +1287,21 @@ async function initPage(){
       var id = r.app_type_id;
       if(!BR_RULES[id]) BR_RULES[id] = [];
       BR_RULES[id].push({
-        'App Type ID':r.app_type_id,'App Type English Name':r.app_type_en,
-        'App Type Arabic Name':r.app_type_ar,'App Sub Type Id':r.app_sub_type_id,
-        'App Sub Type English Name':r.app_sub_type_en,'App Sub Type Arabic Name':r.app_sub_type_ar,
-        'Channel ID':r.channel_id,'Channel Name':r.channel_name,
-        'Rule classification':r.rule_classification,'Rule Id':r.rule_id,
-        'Rule Name':r.rule_name,'Rule package':r.rule_package,
-        'Precondition':r.precondition,'Pass Condition':r.pass_condition,
-        'Fail Message in English':r.fail_msg_en,'Fail Message in Arabic':r.fail_msg_ar,
-        'Pass Message in English':r.pass_msg_en,'Pass Message in Arabic':r.pass_msg_ar
+        rid:      r.rule_id,
+        rname:    r.rule_name,
+        cls:      r.rule_classification,
+        pkg:      r.rule_package,
+        ch:       r.channel_name,
+        ch_id:    r.channel_id,
+        pre:      r.precondition,
+        pass_cond:r.pass_condition,
+        fmsg_en:  r.fail_msg_en,
+        fmsg_ar:  r.fail_msg_ar,
+        pmsg_en:  r.pass_msg_en,
+        pmsg_ar:  r.pass_msg_ar,
+        sub_id:   r.app_sub_type_id,
+        sub_en:   r.app_sub_type_en,
+        sub_ar:   r.app_sub_type_ar
       });
     });
     document.getElementById('loadingOverlay').style.display='none';

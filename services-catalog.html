@@ -40,6 +40,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .header-title p{font-size:.78rem;color:rgba(255,255,255,.65);}
 .header-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 12px;font-size:.7rem;font-weight:700;color:#fff;letter-spacing:.05em;text-transform:uppercase;}
 
+/* ── CHANNEL CHIPS IN SEARCH BAR ── */
+.sb-ch-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:.71rem;font-weight:700;cursor:pointer;user-select:none;border:1.5px solid transparent;transition:all .13s;}
+.sb-ch-chip input{display:none;}
+.counter-chip{background:var(--ch-counter-bg);color:var(--ch-counter);border-color:#fcd34d;}
+.indi-chip{background:var(--ch-indi-bg);color:var(--ch-indi);border-color:#c4b5fd;}
+.est-chip{background:var(--ch-est-bg);color:var(--ch-est);border-color:#86efac;}
+.typing-chip{background:var(--ch-typing-bg);color:var(--ch-typing);border-color:#f9a8d4;}
+.mohre-chip{background:var(--ch-mohre-bg);color:var(--ch-mohre);border-color:#67e8f9;}
+.sb-ch-chip:has(input:not(:checked)){opacity:.38;filter:grayscale(.5);}
+
 /* ── SEARCH BAR ── */
 .search-bar-wrap{background:rgba(255,255,255,.1);border-top:1px solid rgba(255,255,255,.08);padding:16px 32px;}
 .search-bar-inner{max-width:1200px;margin:0 auto;position:relative;}
@@ -53,20 +63,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 /* ── MAIN LAYOUT ── */
 .main-wrap{max-width:1200px;margin:0 auto;padding:24px 32px;}
-.layout{display:grid;grid-template-columns:240px 1fr;gap:24px;align-items:start;}
-@media(max-width:900px){.layout{grid-template-columns:1fr;}.filter-panel{position:static;}}
+.layout{display:block;}
 
-/* ── FILTER PANEL ── */
-.filter-panel{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:18px;position:sticky;top:20px;}
-.filter-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.filter-panel-title{font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
-.filter-reset{background:none;border:none;font-size:.72rem;font-weight:700;color:var(--primary);cursor:pointer;padding:3px 6px;border-radius:4px;}
-.filter-reset:hover{background:var(--primary-light);}
-.filter-group{margin-bottom:18px;}
-.filter-group:last-child{margin-bottom:0;}
-.filter-label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block;}
-.filter-select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:.82rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;}
-.filter-select:focus{border-color:var(--primary);}
 
 /* ── TYPEAHEAD ── */
 .typeahead-wrap{position:relative;}
@@ -398,81 +396,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </nav>
 
-<!-- SEARCH BAR --><!-- SEARCH BAR -->
-<div class="search-bar-wrap" style="background:linear-gradient(-45deg,#0c2461,#1a56db);padding-bottom:20px;">
+<!-- SEARCH BAR + CHANNEL CHIPS -->
+<div class="search-bar-wrap" style="background:linear-gradient(-45deg,#0c2461,#1a56db);padding-bottom:16px;">
   <div class="search-bar-inner">
     <svg class="search-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input type="text" id="searchInput" class="search-input" placeholder="Search by name or Type ID (e.g. 'outpass' or '60')…" oninput="onSearch(this)"/>
     <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+  <!-- Channel filter chips -->
+  <div style="max-width:1200px;margin:10px auto 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 2px;">
+    <span style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.45);">Channel</span>
+    <label class="sb-ch-chip counter-chip"><input type="checkbox" value="counter" checked onchange="applyFilters()"/>Counter</label>
+    <label class="sb-ch-chip indi-chip"><input type="checkbox" value="indi" checked onchange="applyFilters()"/>SC – Individual</label>
+    <label class="sb-ch-chip est-chip"><input type="checkbox" value="est" checked onchange="applyFilters()"/>SC – Establishment</label>
+    <label class="sb-ch-chip typing-chip"><input type="checkbox" value="typing" checked onchange="applyFilters()"/>SC – Typing Center</label>
+    <label class="sb-ch-chip mohre-chip"><input type="checkbox" value="mohre" checked onchange="applyFilters()"/>MoHRE</label>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main-wrap">
   <div class="layout">
-
-    <!-- FILTER PANEL -->
-    <aside class="filter-panel">
-      <div class="filter-panel-header">
-        <span class="filter-panel-title">Filters</span>
-        <button class="filter-reset" onclick="resetAll()">Reset all</button>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">Product Category</label>
-        <select class="filter-select" id="filterCategory" onchange="applyFilters()">
-          <option value="">All Categories</option>
-          <option>Outpass</option>
-          <option>Outpass + Lift Temp Closure</option>
-          <option>Cancellation</option>
-          <option>Temporary Closure</option>
-          <option>Permanent Closure</option>
-          <option>Deportation Order</option>
-          <option>Violation</option>
-          <option>Ban Management</option>
-          <option>Reports</option>
-          <option>Family Hold</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">Application Type</label>
-        <div class="typeahead-wrap" id="typeaheadWrap">
-          <input type="text" class="typeahead-input" id="typeaheadInput" placeholder="Type name or ID…" autocomplete="off"
-            oninput="taOnInput()" onfocus="taOpen()" onkeydown="taKeydown(event)"/>
-          <button class="typeahead-clear" id="typeaheadClear" onclick="taClear()" title="Clear">✕</button>
-          <div class="typeahead-dropdown" id="typeaheadDropdown"></div>
-        </div>
-      </div>
-
-
-      <div class="filter-group">
-        <label class="filter-label">Assets Available</label>
-        <div class="filter-chips" id="assetFilterChips">
-          <label class="filter-chip">
-            <input type="checkbox" value="fees" onchange="applyFilters()"/>
-            <span class="filter-chip-dot" style="background:#16a34a;"></span>
-            <span>Has Fees Data</span>
-          </label>
-          <label class="filter-chip">
-            <input type="checkbox" value="rules" onchange="applyFilters()" disabled/>
-            <span class="filter-chip-dot" style="background:#cbd5e1;"></span>
-            <span style="color:var(--muted);">Business Rules</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">Available Channels</label>
-        <div class="filter-chips">
-          <label class="filter-chip"><input type="checkbox" value="counter" checked onchange="applyFilters()"/><span class="filter-chip-dot chip-counter"></span><span>Counter</span></label>
-          <label class="filter-chip"><input type="checkbox" value="indi" checked onchange="applyFilters()"/><span class="filter-chip-dot chip-indi"></span><span>SC – Individual</span></label>
-          <label class="filter-chip"><input type="checkbox" value="est" checked onchange="applyFilters()"/><span class="filter-chip-dot chip-est"></span><span>SC – Establishment</span></label>
-          <label class="filter-chip"><input type="checkbox" value="typing" checked onchange="applyFilters()"/><span class="filter-chip-dot chip-typing"></span><span>SC – Typing Center</span></label>
-          <label class="filter-chip"><input type="checkbox" value="mohre" checked onchange="applyFilters()"/><span class="filter-chip-dot chip-mohre"></span><span>MoHRE</span></label>
-        </div>
-      </div>
-    </aside>
 
     <!-- RESULTS -->
     <div>
@@ -741,22 +685,14 @@ document.addEventListener('click', e => {
 
 function getFiltered() {
   const q = document.getElementById('searchInput').value.trim();
-  const cat = document.getElementById('filterCategory').value;
   const appType = taSelectedValue;
-  const checkedChannels = [...document.querySelectorAll('.filter-chips input:checked')].map(c=>c.value);
-  const checkedAssets = [...document.querySelectorAll('#assetFilterChips input:checked:not(:disabled)')].map(c=>c.value);
   const chMap = {counter:'Channel - Counter',indi:'Channel - SC - Indi',est:'Channel - SC - Est',typing:'Channel - SC - Typing Ctr',mohre:'Channel - MoHRE'};
+  const checkedChannels = [...document.querySelectorAll('.sb-ch-chip input:checked')].map(c=>c.value);
 
   return SERVICES.filter(s => {
-    if(cat && s['Product Category'] !== cat) return false;
     if(appType && s['Application Type'] !== appType) return false;
-    // Show service if it supports AT LEAST ONE of the checked channels
+    // Show service only if it supports at least one of the ticked channels
     if(checkedChannels.length && !checkedChannels.some(ch => chVal(s[chMap[ch]]))) return false;
-    // Asset filter
-    if(checkedAssets.includes('fees')) {
-      const tid = String(s['Application Type Id']);
-      if(!FEES_BY_ID[tid] || !FEES_BY_ID[tid].length) return false;
-    }
     if(q) {
       const ql = q.toLowerCase();
       const nameMatch = s['Application Type'].toLowerCase().includes(ql);
@@ -810,20 +746,15 @@ function applyFilters() {
 function updateActiveFilters() {
   const wrap = document.getElementById('activeFilters');
   const chips = [];
-  const cat = document.getElementById('filterCategory').value;
   const appType = taSelectedValue;
   const q = document.getElementById('searchInput').value.trim();
-  const checked = [...document.querySelectorAll('.filter-chips input:checked')].map(c=>c.parentElement.querySelector('span:nth-child(3)').textContent);
 
-  if(cat) chips.push(`Category: ${cat}<button onclick="document.getElementById('filterCategory').value='';applyFilters()">✕</button>`);
   if(appType) {
-    // find the ID for this type to show in chip
     const svc = SERVICES.find(s => s['Application Type'] === appType);
     const idPart = svc && svc['Application Type Id'] ? ` (${svc['Application Type Id']})` : '';
     chips.push(`Type: ${appType}${idPart}<button onclick="taClear()">✕</button>`);
   }
   if(q) chips.push(`"${q}"<button onclick="clearSearch()">✕</button>`);
-  checked.forEach(ch => chips.push(`${ch}<button onclick="uncheckChannel('${ch}')">✕</button>`));
   wrap.innerHTML = chips.map(c=>`<span class="af-chip">${c}</span>`).join('');
 }
 
@@ -845,16 +776,13 @@ function clearSearch() {
   applyFilters();
 }
 
-function resetAll() {
-  document.getElementById('searchInput').value = '';
-  document.getElementById('searchClear').classList.remove('visible');
-  document.getElementById('filterCategory').value = '';
+function resetAll(){
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchClear').style.display='none';
+  taChipId = null;
   taClear();
-  document.querySelectorAll('.filter-chips input, #assetFilterChips input').forEach(cb => cb.checked = false);
-  document.getElementById('sortSelect').value = 'seq';
   applyFilters();
 }
-
 function setView(v) {
   currentView = v;
   document.getElementById('btnCards').classList.toggle('active', v==='cards');
@@ -916,7 +844,7 @@ function openDrawer(seq) {
   var hintEl = document.getElementById('chFilterHint');
   if(hintEl) hintEl.textContent = '— tap to filter';
 
-  const availableChannels = allChannels.filter(c => s[c.field] === 'Yes');
+  const availableChannels = allChannels.filter(c => chVal(s[c.field]));
   const chHtml = availableChannels
     .map(c => `<span class="drw-ch-tag ${c.key}" data-ch-key="${c.key}" data-ch-name="${c.label}" onclick="toggleDrawerChannel(this,'${c.key}','${c.label}')">${chIcons[c.key]}${c.label}</span>`)
     .join('');
